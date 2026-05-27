@@ -5,7 +5,7 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
-  const isGhPages = process.env.GITHUB_PAGES === 'true';
+  const isGhPages = process.env.GITHUB_PAGES === 'true' || process.env.GITHUB_ACTIONS === 'true';
   return {
     base: isGhPages ? '/Projeto-escala/' : '/',
     plugins: [react(), tailwindcss()],
