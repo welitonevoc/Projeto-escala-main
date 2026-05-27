@@ -44,6 +44,7 @@ export function CalendarioTab({ eventos, onUpdate }: Props) {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [novoEvento, setNovoEvento] = useState({ data: '', descricao: '', cc: '', congregacao: '', programacaoEntregue: false, conjuntosConvidados: [{ nome: '', congregacao: '' }, { nome: '', congregacao: '' }], cantoresConvidados: '', imagemAnexo: undefined as string | undefined });
   const touchStartX = useRef(0);
 
@@ -230,7 +231,23 @@ export function CalendarioTab({ eventos, onUpdate }: Props) {
                           </p>
                         )}
                         {ev.imagemAnexo && (
-                          <img src={ev.imagemAnexo} alt="Anexo" className="mt-2 h-16 w-auto rounded-lg border border-slate-200 object-cover" />
+                          <div className="relative mt-2 inline-block group/img">
+                            <img
+                              src={ev.imagemAnexo}
+                              alt="Anexo"
+                              className="h-16 w-auto rounded-lg border border-slate-200 object-cover cursor-pointer hover:opacity-80 transition-all"
+                              onClick={(e) => { e.stopPropagation(); setZoomImage(ev.imagemAnexo!); }}
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onUpdate(eventos.map(item => item.id === ev.id ? { ...item, imagemAnexo: undefined } : item));
+                              }}
+                              className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center hover:bg-red-600 transition-all active:scale-90 text-[10px] font-bold shadow-md opacity-0 group-hover/img:opacity-100"
+                            >
+                              &times;
+                            </button>
+                          </div>
                         )}
                       </div>
                       <button onClick={(e) => {
@@ -291,6 +308,34 @@ export function CalendarioTab({ eventos, onUpdate }: Props) {
           {eventos.length} evento{eventos.length !== 1 ? 's' : ''} cadastrado{eventos.length !== 1 ? 's' : ''}
         </p>
       </div>
+
+      {/* Lightbox de imagem */}
+      <AnimatePresence>
+        {zoomImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoomImage(null)}
+            className="fixed inset-0 bg-black/90 z-[99999] flex items-center justify-center p-4 cursor-zoom-out"
+          >
+            <motion.img
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              src={zoomImage}
+              alt="Anexo ampliado"
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+            />
+            <button
+              onClick={() => setZoomImage(null)}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-all text-white text-2xl font-bold"
+            >
+              &times;
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <EventoModal
         evento={editingEvento}
