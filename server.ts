@@ -98,7 +98,7 @@ app.get("/api/sync", async (req, res) => {
   if (!isConfigured()) return res.status(400).json({ error: "Google Sheets not configured" });
   try {
     const sheets = getSheetsClient();
-    const ranges = ["Obreiros!A:C", "Congregacoes!A:J", "EscalaOficial!A:E", "EscalaLocal!A:G", "Eventos!A:D", "TiposCulto!A:B", "RegrasCulto!A:H"];
+    const ranges = ["Obreiros!A:C", "Congregacoes!A:J", "EscalaOficial!A:E", "EscalaLocal!A:G", "Eventos!A:G", "TiposCulto!A:B", "RegrasCulto!A:H"];
     const response = await sheets.spreadsheets.values.batchGet({
       spreadsheetId: SPREADSHEET_ID,
       ranges,

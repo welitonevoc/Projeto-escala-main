@@ -44,12 +44,21 @@ export interface EscalaLocalItem {
 
 export type EscalaOficialStore = Record<string, EscalaOficialData>;
 
+export interface ConjuntoConvidado {
+  nome: string;
+  congregacao: string;
+}
+
 export interface Evento {
   id: string;
   data: string;
   descricao: string;
   cc: string;
   congregacao: string;
+  programacaoEntregue: boolean;
+  conjuntosConvidados: ConjuntoConvidado[];
+  cantoresConvidados: string;
+  imagemAnexo?: string;
 }
 
 export interface TipoCulto {

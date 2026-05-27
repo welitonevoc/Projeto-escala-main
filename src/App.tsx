@@ -146,7 +146,16 @@ function AppContent() {
       // Load ALL weeks for EscalaLocal
       const loadedLocal = data.escalaLocal?.map((r: any) => ({ dataInicio: r[0], categoria: r[1], data: r[2], local: r[3], codigo: r[4], escalados: r[5]?.split(",") || [] })) || [];
       setEscalaLocal(loadedLocal.length === 0 ? ESCALA_LOCAL_PADRAO.map(e => ({ ...e, dataInicio })) : loadedLocal);
-      setEventos(data.eventos?.map((r: any) => ({ id: Math.random().toString(36).substr(2, 9), data: r[0], descricao: r[1], cc: r[2], congregacao: r[3] })) || []);
+      setEventos(data.eventos?.map((r: any) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        data: r[0] || '',
+        descricao: r[1] || '',
+        cc: r[2] || '',
+        congregacao: r[3] || '',
+        programacaoEntregue: r[4] === 'sim',
+        conjuntosConvidados: r[5] ? JSON.parse(r[5]) : [{ nome: '', congregacao: '' }, { nome: '', congregacao: '' }],
+        cantoresConvidados: r[6] || '',
+      })) || []);
       if (data.tiposCulto?.length) setTiposCulto(data.tiposCulto.map((r: any) => ({ nome: r[0], codigo: r[1] })));
       if (data.regrasCulto?.length) setRegrasCulto(data.regrasCulto.map((r: any) => ({ congregacao: r[0], dia: r[1], regraSemana: r.slice(2) })));
 
@@ -163,7 +172,7 @@ function AppContent() {
         { range: "Obreiros!A:C", values: obreiros.map(o => [o.nome, o.cargo, o.congregacao]) },
         { range: "Congregacoes!A:E", values: congregacoes.map(c => [c.nome, c.endereco, c.responsavelNome, c.dataInauguracao, JSON.stringify(c.departamentos)]) },
         { range: "EscalaLocal!A:G", values: escalaLocal.map(l => [l.dataInicio || dataInicio, l.categoria, l.data, l.local, l.codigo, l.escalados.join(","), ""]) },
-        { range: "Eventos!A:D", values: eventos.map(e => [e.data, e.descricao, e.cc, e.congregacao]) },
+        { range: "Eventos!A:G", values: eventos.map(e => [e.data, e.descricao, e.cc, e.congregacao, e.programacaoEntregue ? 'sim' : 'nao', JSON.stringify(e.conjuntosConvidados || [{ nome: '', congregacao: '' }, { nome: '', congregacao: '' }]), e.cantoresConvidados || '']) },
         { range: "TiposCulto!A:B", values: tiposCulto.map(t => [t.nome, t.codigo]) },
         { range: "RegrasCulto!A:H", values: regrasCulto.map(r => [r.congregacao, r.dia, ...r.regraSemana]) },
       ];
