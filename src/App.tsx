@@ -102,9 +102,11 @@ function AppContent() {
     }
   }, [dataInicio, escalaOficialStore]);
 
+  const isApiAvailable = !window.location.hostname.includes('github.io');
+
   // Check status on mount only
   useEffect(() => {
-    checkStatus();
+    if (isApiAvailable) checkStatus();
   }, []);
 
   // Load data only when explicitly triggered
@@ -116,6 +118,10 @@ function AppContent() {
   };
 
   const loadData = async () => {
+    if (!isApiAvailable) {
+      addToast("error", "API não disponível no GitHub Pages. Use o servidor local.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/sync");
@@ -126,7 +132,6 @@ function AppContent() {
       if (data.obreiros?.length) setObreiros(data.obreiros.map((r: any) => ({ nome: r[0], cargo: r[1], congregacao: r[2] })));
       if (data.congregacoes?.length) setCongregacoes(data.congregacoes.map((r: any) => ({ nome: r[0], endereco: r[1], responsavelNome: r[2], dataInauguracao: r[3], departamentos: r[4] ? JSON.parse(r[4]) : [] })));
 
-      // Load ALL weeks for EscalaOficial
       const store: EscalaOficialStore = {};
       data.escalaOficial?.forEach((row: any) => {
         const week = row[0];
@@ -135,7 +140,6 @@ function AppContent() {
         if (!store[week][row[1]]) store[week][row[1]] = [];
         store[week][row[1]].push({ congregacao: row[2], codigo: row[3], escalados: row[4]?.split(",") || [] });
       });
-      // Fill current week with defaults if empty
       if (!store[dataInicio] || Object.keys(store[dataInicio]).length === 0) {
         const current: EscalaOficialData = {};
         DIAS_SEMANA_OFICIAL.forEach(dia => { current[dia.id] = (dia.filtros ?? []).map(cong => ({ congregacao: cong, codigo: "04", escalados: ["", "", ""] })); });
@@ -143,7 +147,6 @@ function AppContent() {
       }
       setEscalaOficialStore(store);
 
-      // Load ALL weeks for EscalaLocal
       const loadedLocal = data.escalaLocal?.map((r: any) => ({ dataInicio: r[0], categoria: r[1], data: r[2], local: r[3], codigo: r[4], escalados: r[5]?.split(",") || [] })) || [];
       setEscalaLocal(loadedLocal.length === 0 ? ESCALA_LOCAL_PADRAO.map(e => ({ ...e, dataInicio })) : loadedLocal);
       setEventos(data.eventos?.map((r: any) => ({
@@ -166,6 +169,10 @@ function AppContent() {
   };
 
   const saveData = async () => {
+    if (!isApiAvailable) {
+      addToast("error", "API não disponível no GitHub Pages. Use o servidor local.");
+      return;
+    }
     setSaving(true);
     try {
       const reqs = [
