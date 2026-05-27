@@ -17,6 +17,7 @@ interface Obreiro {
 
 interface Departamento {
   id: string;
+  tipo: string;
   nome: string;
   dataCriacao: string;
   dirigente: string;
@@ -226,6 +227,18 @@ const DIAS_OFFSET: Record<string, number> = {
   segunda: 0, terca: 1, quarta: 2, quintaManha: 3, quintaTarde: 3, quintaNoite: 3,
   sexta: 4, sabado: 5, domingoManha: 6, domingoNoite: 6
 };
+
+const TIPOS_DEPARTAMENTO = [
+  { id: 'ebd', label: 'EBD', icon: '📖', cor: 'bg-green-600' },
+  { id: 'campanha', label: 'Campanha', icon: '🙏', cor: 'bg-purple-600' },
+  { id: 'co', label: 'C.O', icon: '📋', cor: 'bg-blue-600' },
+  { id: 'coi', label: 'C.O.I', icon: '🕯️', cor: 'bg-amber-600' },
+  { id: 'musical', label: 'Musical', icon: '🎵', cor: 'bg-rose-600' },
+];
+
+function criarDepartamentoVazio(tipo: string, nome: string): Departamento {
+  return { id: crypto.randomUUID?.() || Math.random().toString(36).substr(2, 9), tipo, nome, dataCriacao: '', dirigente: '', viceDirigente: '', secretaria: '', viceSecretaria: '' };
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("escala-oficial");
@@ -788,48 +801,64 @@ Object.entries(escalaOficial as any).forEach(([dia, items]: any[]) => {
                    </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                   {congregacoes.map((cong, idx) => {
-                      const age = cong.dataInauguracao ? new Date().getFullYear() - new Date(cong.dataInauguracao).getFullYear() : "...";
-                      return (
-                         <div key={idx} className="bg-white rounded-[40px] border border-[#c5d8ef] shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-500 group border-b-8 border-b-blue-600">
-                            <div className="bg-[#0e3d6e] p-8 text-white relative h-40 flex flex-col justify-end">
-                               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
-                               <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none mb-2">{cong.nome}</h3>
-                               <p className="text-blue-300 text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
-                                  <MapPin size={12} /> {cong.endereco?.slice(0, 30)}...
-                               </p>
-                               <div className="absolute top-8 right-8 bg-amber-400 text-black px-4 py-1 rounded-full text-[10px] font-black shadow-lg">
-                                  {age} ANOS
-                               </div>
-                            </div>
-                            
-                            <div className="p-8 space-y-6">
-                               <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                  <p className="text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-[2px] mb-2 leading-none">Obreiro Responsável</p>
-                                  <p className="text-sm font-black text-blue-900 flex items-center gap-3">
-                                     <Users size={16} className="text-blue-500" /> {cong.responsavelNome || "-"}
-                                  </p>
-                               </div>
-
-                               <div className="space-y-4">
-                                  <p className="text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-[2px] leading-none">Conjuntos ({cong.departamentos?.length || 0})</p>
-                                  <div className="flex flex-wrap gap-2">
-                                     {cong.departamentos?.slice(0, 3).map((d, dIdx) => (
-                                        <span key={dIdx} className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[9px] font-black border border-blue-100 uppercase tracking-tighter">{d.nome}</span>
-                                     ))}
-                                     {(cong.departamentos?.length || 0) > 3 && <span className="text-slate-400 text-[10px] font-bold tracking-widest">+{(cong.departamentos?.length || 0) - 3}</span>}
-                                  </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {congregacoes.map((cong, idx) => {
+                       const age = cong.dataInauguracao ? new Date().getFullYear() - new Date(cong.dataInauguracao).getFullYear() : "...";
+                       const obreirosDaCong = obreiros.filter(o => o.congregacao === cong.nome);
+                       const ativos = TIPOS_DEPARTAMENTO.filter(t => cong.departamentos?.some(d => d.tipo === t.id));
+                       return (
+                          <div key={idx} className="bg-white rounded-[40px] border border-[#c5d8ef] shadow-xl overflow-hidden hover:-translate-y-2 transition-all duration-500 group border-b-8 border-b-blue-600">
+                             <div className="bg-[#0e3d6e] p-8 text-white relative h-44 flex flex-col justify-end">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none mb-2">{cong.nome}</h3>
+                                <p className="text-blue-300 text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
+                                   <MapPin size={12} /> {cong.endereco?.slice(0, 35)}...
+                                </p>
+                                <div className="absolute top-6 right-6 bg-amber-400 text-black px-4 py-1.5 rounded-full text-[9px] font-black shadow-lg flex items-center gap-1.5">
+                                  <span>📅</span> {age} ANOS
+                                </div>
+                             </div>
+                             
+                             <div className="p-8 space-y-5">
+                                <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100">
+                                   <p className="text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-[2px] mb-2 leading-none">Obreiro Responsável</p>
+                                   <p className="text-sm font-black text-blue-900 flex items-center gap-3">
+                                      <Users size={16} className="text-blue-500" /> {cong.responsavelNome || "—"}
+                                   </p>
                                 </div>
 
-                                <button onClick={() => setEditingCongregacao(idx)} className="w-full py-4 bg-white border-2 border-blue-600 text-blue-600 rounded-3xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-md">
-                                   Gerenciar Templo
-                                </button>
-                            </div>
-                         </div>
-                      );
-                   })}
-                </div>
+                                <div className="space-y-3">
+                                   <p className="text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-[2px] leading-none flex items-center gap-2">
+                                     <span>🏛️</span> Departamentos Ativos ({ativos.length})
+                                   </p>
+                                   <div className="flex flex-wrap gap-2">
+                                      {ativos.length === 0 && <span className="text-slate-300 text-[10px] font-bold italic">Nenhum departamento configurado</span>}
+                                      {ativos.map((t, tIdx) => (
+                                         <span key={tIdx} className={`${t.cor} text-white px-3 py-1.5 rounded-full text-[9px] font-black shadow-sm flex items-center gap-1`}>
+                                           {t.icon} {t.label}
+                                         </span>
+                                      ))}
+                                   </div>
+                                 </div>
+
+                                 <div className="flex items-center justify-between bg-blue-50 rounded-2xl px-5 py-3">
+                                   <div className="flex items-center gap-2">
+                                     <Users size={14} className="text-blue-500" />
+                                     <span className="text-[10px] font-black text-blue-700">{obreirosDaCong.length} obreiros</span>
+                                   </div>
+                                   {cong.dataInauguracao && (
+                                     <span className="text-[9px] font-bold text-slate-400">{cong.dataInauguracao}</span>
+                                   )}
+                                 </div>
+
+                                 <button onClick={() => setEditingCongregacao(idx)} className="w-full py-4 bg-white border-2 border-blue-600 text-blue-600 rounded-3xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-md">
+                                    Gerenciar Templo
+                                 </button>
+                             </div>
+                          </div>
+                       );
+                    })}
+                 </div>
              </div>
            )}
 
@@ -837,25 +866,32 @@ Object.entries(escalaOficial as any).forEach(([dia, items]: any[]) => {
              <div className="space-y-8">
                 <div className="bg-white p-10 rounded-[40px] border border-[#c5d8ef] shadow-2xl">
                    <h2 className="text-2xl font-black text-blue-900 mb-8 italic">Cadastro de Obreiros</h2>
-                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-10">
-                      <div className="md:col-span-2 space-y-2">
-                         <label className="text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest px-2">Nome Completo</label>
-                         <input type="text" value={novoObreiro.nome} onChange={e => setNovoObreiro({...novoObreiro, nome: e.target.value})} className="w-full bg-white border border-[#c5d8ef] rounded-2xl px-5 py-3 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Digite o nome..." />
-                      </div>
-                      <div className="space-y-2">
-                         <label className="text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest px-2">Cargo</label>
-                         <select value={novoObreiro.cargo} onChange={e => setNovoObreiro({...novoObreiro, cargo: e.target.value})} className="w-full bg-white border border-[#c5d8ef] rounded-2xl px-5 py-3 font-bold text-slate-800 outline-none">
-                            {CARGOS.map(c => <option key={c} value={c}>{c}</option>)}
-                         </select>
-                      </div>
-                      <button onClick={() => {
-                        if(!novoObreiro.nome) return alert("Digite o nome");
-                        setObreiros([{...novoObreiro}, ...obreiros]);
-                        setNovoObreiro({nome: "", cargo: "Aux.", congregacao: ""});
-                      }} className="bg-[#0d4a8a] text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2">
-                         <Plus size={16} /> Adicionar
-                      </button>
-                   </div>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-10">
+                       <div className="md:col-span-2 space-y-2">
+                          <label className="text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest px-2">Nome Completo</label>
+                          <input type="text" value={novoObreiro.nome} onChange={e => setNovoObreiro({...novoObreiro, nome: e.target.value})} className="w-full bg-white border border-[#c5d8ef] rounded-2xl px-5 py-3 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Digite o nome..." />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest px-2">Cargo</label>
+                          <select value={novoObreiro.cargo} onChange={e => setNovoObreiro({...novoObreiro, cargo: e.target.value})} className="w-full bg-white border border-[#c5d8ef] rounded-2xl px-5 py-3 font-bold text-slate-800 outline-none">
+                             {CARGOS.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest px-2">Congregação</label>
+                          <select value={novoObreiro.congregacao} onChange={e => setNovoObreiro({...novoObreiro, congregacao: e.target.value})} className="w-full bg-white border border-[#c5d8ef] rounded-2xl px-5 py-3 font-bold text-slate-800 outline-none">
+                             <option value="">Selecione...</option>
+                             {congregacoes.map((c, i) => <option key={i} value={c.nome}>{c.nome}</option>)}
+                          </select>
+                       </div>
+                       <button onClick={() => {
+                         if(!novoObreiro.nome) return alert("Digite o nome");
+                         setObreiros([{...novoObreiro}, ...obreiros]);
+                         setNovoObreiro({nome: "", cargo: "Aux.", congregacao: ""});
+                       }} className="bg-[#0d4a8a] text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2">
+                          <Plus size={16} /> Adicionar
+                       </button>
+                    </div>
 
                    <div className="relative mb-6">
                       <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
@@ -865,25 +901,29 @@ Object.entries(escalaOficial as any).forEach(([dia, items]: any[]) => {
                    <div className="overflow-hidden rounded-[32px] border border-slate-100">
                       <table className="w-full text-left">
                          <thead>
-                            <tr className="bg-slate-50 border-b border-slate-100">
-                               <th className="px-8 py-4 text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest w-24 text-center">Cargo</th>
-                               <th className="px-8 py-4 text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Nome Completo</th>
-                               <th className="px-8 py-4 text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest w-16 text-right">Ações</th>
-                            </tr>
-                         </thead>
-                         <tbody className="divide-y divide-[#c5d8ef]">
-                            {obreiros.filter(o => o.nome.toLowerCase().includes(termoBuscaObreiro.toLowerCase())).map((o, idx) => (
-                               <tr key={idx} className="group hover:bg-slate-50/50 transition-all">
-                                  <td className="px-8 py-3">
-                                     <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black text-center">{o.cargo}</div>
-                                  </td>
-                                  <td className="px-8 py-3 font-bold text-slate-700">{o.nome}</td>
-                                  <td className="px-8 py-3 text-right">
-                                     <button onClick={() => setObreiros(obreiros.filter((_, i) => i !== idx))} className="text-red-300 hover:text-red-500 transition-all"><Trash2 size={16}/></button>
-                                  </td>
-                               </tr>
-                            ))}
-                         </tbody>
+                             <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="px-8 py-4 text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest w-24 text-center">Cargo</th>
+                                <th className="px-8 py-4 text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Nome Completo</th>
+                                <th className="px-8 py-4 text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Congregação</th>
+                                <th className="px-8 py-4 text-[0.85rem] font-bold text-[#0d3d7a] uppercase tracking-widest w-16 text-right">Ações</th>
+                             </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#c5d8ef]">
+                             {obreiros.filter(o => o.nome.toLowerCase().includes(termoBuscaObreiro.toLowerCase())).map((o, idx) => (
+                                <tr key={idx} className="group hover:bg-slate-50/50 transition-all">
+                                   <td className="px-8 py-3">
+                                      <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black text-center">{o.cargo}</div>
+                                   </td>
+                                   <td className="px-8 py-3 font-bold text-slate-700">{o.nome}</td>
+                                   <td className="px-8 py-3">
+                                     <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${o.congregacao ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-300'}`}>{o.congregacao || '—'}</span>
+                                   </td>
+                                   <td className="px-8 py-3 text-right">
+                                      <button onClick={() => setObreiros(obreiros.filter((_, i) => i !== idx))} className="text-red-300 hover:text-red-500 transition-all"><Trash2 size={16}/></button>
+                                   </td>
+                                </tr>
+                             ))}
+                          </tbody>
                       </table>
                    </div>
                 </div>
@@ -1023,49 +1063,194 @@ Object.entries(escalaOficial as any).forEach(([dia, items]: any[]) => {
 
       {/* MODAL EDIÇÃO CONGREGAÇÃO */}
       <AnimatePresence>
-        {editingCongregacao !== null && (
+        {editingCongregacao !== null && (() => {
+          const cong = congregacoes[editingCongregacao];
+          if (!cong) return null;
+          const obreirosDaCong = obreiros.filter(o => o.congregacao === cong.nome);
+          const updateCong = (field: string, value: any) => {
+            const nc = [...congregacoes];
+            (nc[editingCongregacao] as any)[field] = value;
+            setCongregacoes(nc);
+          };
+          return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-[#071f37]/95 z-[10000] flex items-center justify-center p-4 backdrop-blur-xl">
-            <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-[60px] w-full max-w-5xl shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[95vh] border border-white/20">
-               <div className="bg-[#0e3d6e] py-12 px-14 text-white flex justify-between items-center relative overflow-hidden">
+            <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-[60px] w-full max-w-6xl shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[95vh] border border-white/20">
+               <div className="bg-[#0e3d6e] py-10 px-14 text-white flex justify-between items-center relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
                   <div className="relative z-10">
                      <p className="text-[11px] font-black uppercase text-blue-300 tracking-[6px] mb-3 leading-none italic">Gestão Administrativa</p>
-                     <h2 className="text-5xl font-black italic uppercase tracking-tighter leading-none">{congregacoes[editingCongregacao]?.nome}</h2>
+                     <h2 className="text-4xl font-black italic uppercase tracking-tighter leading-none">{cong.nome}</h2>
                   </div>
-                  <button onClick={() => setEditingCongregacao(null)} className="relative z-10 w-16 h-16 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all font-black text-4xl shadow-xl hover:rotate-90 duration-500">&times;</button>
+                  <button onClick={() => setEditingCongregacao(null)} className="relative z-10 w-14 h-14 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all font-black text-3xl shadow-xl hover:rotate-90 duration-500">&times;</button>
                </div>
 
-               <div className="flex-1 overflow-y-auto p-14 space-y-14 custom-scrollbar">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+               <div className="flex-1 overflow-y-auto p-10 space-y-12 custom-scrollbar">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                     {/* COLUNA 1: DADOS GERAIS */}
                      <div className="space-y-10">
-                        <section className="space-y-8">
-                           <h4 className="text-[#0d4a8a] font-black text-xs uppercase tracking-[4px] border-b-4 border-blue-50 pb-5 italic flex items-center gap-3"><Church size={18} /> Dados Gerais do Templo</h4>
-                           <div className="space-y-6">
-                              <div className="flex flex-col gap-3">
+                        <section className="space-y-6">
+                           <h4 className="text-[#0d4a8a] font-black text-xs uppercase tracking-[4px] border-b-4 border-blue-50 pb-4 italic flex items-center gap-3"><Church size={18} /> Dados Gerais do Templo</h4>
+                           <div className="space-y-5">
+                              <div className="flex flex-col gap-2">
                                  <label className="text-[10px] font-black uppercase text-slate-400 px-3 tracking-[3px]">Nome da Congregação</label>
-                                 <input type="text" value={congregacoes[editingCongregacao]?.nome} onChange={e => {
-                                    const nc = [...congregacoes]; nc[editingCongregacao].nome = e.target.value; setCongregacoes(nc);
-                                 }} className="w-full bg-slate-50 border border-[#c5d8ef] rounded-[28px] px-8 py-5 font-black text-[#0d4a8a] outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-inner text-lg" />
+                                 <input type="text" value={cong.nome} onChange={e => updateCong('nome', e.target.value)} className="w-full bg-slate-50 border border-[#c5d8ef] rounded-[28px] px-8 py-5 font-black text-[#0d4a8a] outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-inner text-lg" />
                               </div>
-                              <div className="flex flex-col gap-3">
-                                 <label className="text-[10px] font-black uppercase text-slate-400 px-3 tracking-[3px]">Responsável (Obreiro)</label>
-                                 <input list="lista-obreiros" type="text" value={congregacoes[editingCongregacao]?.responsavelNome} onChange={e => {
-                                    const nc = [...congregacoes]; nc[editingCongregacao].responsavelNome = e.target.value; setCongregacoes(nc);
-                                 }} className="w-full bg-slate-50 border border-[#c5d8ef] rounded-[24px] px-8 py-4 font-bold text-slate-700 outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-inner" placeholder="Ex: Pr. Fulano de Tal" />
+                              <div className="flex flex-col gap-2">
+                                 <label className="text-[10px] font-black uppercase text-slate-400 px-3 tracking-[3px]">Endereço Completo</label>
+                                 <input type="text" value={cong.endereco} onChange={e => updateCong('endereco', e.target.value)} className="w-full bg-slate-50 border border-[#c5d8ef] rounded-[24px] px-8 py-4 font-bold text-slate-700 outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-inner" placeholder="Rua, número, bairro, cidade - UF" />
                               </div>
+                              <div className="flex flex-col gap-2">
+                                 <label className="text-[10px] font-black uppercase text-slate-400 px-3 tracking-[3px]">Data de Inauguração / Início do Trabalho</label>
+                                 <input type="date" value={cong.dataInauguracao} onChange={e => updateCong('dataInauguracao', e.target.value)} className="w-full bg-slate-50 border border-[#c5d8ef] rounded-[24px] px-8 py-4 font-bold text-slate-700 outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-inner" />
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                 <label className="text-[10px] font-black uppercase text-slate-400 px-3 tracking-[3px]">Obreiro Responsável pela Congregação</label>
+                                 <input list="lista-obreiros" type="text" value={cong.responsavelNome} onChange={e => updateCong('responsavelNome', e.target.value)} className="w-full bg-slate-50 border border-[#c5d8ef] rounded-[24px] px-8 py-4 font-bold text-slate-700 outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all shadow-inner" placeholder="Ex: Pr. Fulano de Tal" />
+                                 <span className="text-[9px] text-slate-400 px-3 font-bold">Digite o nome ou selecione da lista de obreiros cadastrados</span>
+                              </div>
+                           </div>
+                        </section>
+
+                        {/* OBREIROS DA CONGREGAÇÃO */}
+                        <section className="space-y-6">
+                           <h4 className="text-[#0d4a8a] font-black text-xs uppercase tracking-[4px] border-b-4 border-blue-50 pb-4 italic flex items-center gap-3"><Users size={18} /> Obreiros desta Congregação ({obreirosDaCong.length})</h4>
+                           {obreirosDaCong.length === 0 ? (
+                             <div className="bg-slate-50 rounded-[24px] px-8 py-8 text-center">
+                               <p className="text-slate-400 text-sm font-bold">Nenhum obreiro vinculado a esta congregação.</p>
+                               <p className="text-slate-300 text-[10px] font-bold mt-2">Vá até a aba "Obreiros" e defina a congregação de cada um.</p>
+                             </div>
+                           ) : (
+                             <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                               {obreirosDaCong.map((o, idx) => (
+                                 <div key={idx} className="bg-slate-50 border border-slate-100 rounded-[20px] px-6 py-4 flex items-center justify-between group hover:bg-white hover:shadow-md transition-all">
+                                   <div className="flex items-center gap-4">
+                                     <span className={`text-[10px] font-black px-3 py-1.5 rounded-full text-white ${
+                                       o.cargo === 'Pr.' ? 'bg-blue-700' :
+                                       o.cargo === 'Pb.' ? 'bg-blue-500' :
+                                       o.cargo === 'Dc.' ? 'bg-teal-600' : 'bg-slate-500'
+                                     }`}>{o.cargo}</span>
+                                     <span className="font-bold text-slate-700 text-sm">{o.nome}</span>
+                                   </div>
+                                 </div>
+                               ))}
+                             </div>
+                           )}
+                        </section>
+                     </div>
+
+                     {/* COLUNA 2: DEPARTAMENTOS */}
+                     <div className="space-y-10">
+                        <section className="space-y-6">
+                           <h4 className="text-[#0d4a8a] font-black text-xs uppercase tracking-[4px] border-b-4 border-blue-50 pb-4 italic flex items-center gap-3">🏛️ Departamentos & Ministérios</h4>
+                           <div className="space-y-5">
+                              {TIPOS_DEPARTAMENTO.map(tipoDep => {
+                                const dep = cong.departamentos?.find(d => d.tipo === tipoDep.id);
+                                return (
+                                  <div key={tipoDep.id} className={`rounded-[24px] border-2 p-6 space-y-4 transition-all ${dep ? 'bg-white border-[#c5d8ef] shadow-sm' : 'bg-slate-50 border-dashed border-slate-200'}`}>
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <span className={`${tipoDep.cor} text-white w-9 h-9 rounded-full flex items-center justify-center text-sm shadow-sm`}>{tipoDep.icon}</span>
+                                        <div>
+                                          <h5 className="font-black text-sm text-[#0d4a8a] uppercase tracking-wider">{tipoDep.label}</h5>
+                                          {!dep && <p className="text-[9px] text-slate-400 font-bold">Clique em "Ativar" para configurar</p>}
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={() => {
+                                          if (dep) {
+                                            const nc = [...congregacoes];
+                                            nc[editingCongregacao].departamentos = nc[editingCongregacao].departamentos.filter(d => d.tipo !== tipoDep.id);
+                                            setCongregacoes(nc);
+                                          } else {
+                                            const nc = [...congregacoes];
+                                            nc[editingCongregacao].departamentos = [...(nc[editingCongregacao].departamentos || []), criarDepartamentoVazio(tipoDep.id, tipoDep.label)];
+                                            setCongregacoes(nc);
+                                          }
+                                        }}
+                                        className={`text-[9px] font-black uppercase tracking-widest px-5 py-2 rounded-full transition-all ${dep ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-[#0d4a8a] text-white hover:bg-blue-700'}`}
+                                      >
+                                        {dep ? 'Desativar' : 'Ativar'}
+                                      </button>
+                                    </div>
+
+                                    {dep && (
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                        <div className="flex flex-col gap-1.5">
+                                          <label className="text-[8px] font-black uppercase text-slate-400 tracking-[2px]">Dirigente</label>
+                                          <input list="lista-obreiros" type="text" value={dep.dirigente} onChange={e => {
+                                            const nc = [...congregacoes];
+                                            const d = nc[editingCongregacao].departamentos.find(dd => dd.tipo === tipoDep.id);
+                                            if (d) d.dirigente = e.target.value;
+                                            setCongregacoes(nc);
+                                          }} className="w-full bg-slate-50 border border-slate-200 rounded-[16px] px-5 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 transition-all" placeholder="Nome do dirigente" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                          <label className="text-[8px] font-black uppercase text-slate-400 tracking-[2px]">Vice-Dirigente</label>
+                                          <input list="lista-obreiros" type="text" value={dep.viceDirigente} onChange={e => {
+                                            const nc = [...congregacoes];
+                                            const d = nc[editingCongregacao].departamentos.find(dd => dd.tipo === tipoDep.id);
+                                            if (d) d.viceDirigente = e.target.value;
+                                            setCongregacoes(nc);
+                                          }} className="w-full bg-slate-50 border border-slate-200 rounded-[16px] px-5 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 transition-all" placeholder="Nome do vice" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                          <label className="text-[8px] font-black uppercase text-slate-400 tracking-[2px]">Secretária(o)</label>
+                                          <input list="lista-obreiros" type="text" value={dep.secretaria} onChange={e => {
+                                            const nc = [...congregacoes];
+                                            const d = nc[editingCongregacao].departamentos.find(dd => dd.tipo === tipoDep.id);
+                                            if (d) d.secretaria = e.target.value;
+                                            setCongregacoes(nc);
+                                          }} className="w-full bg-slate-50 border border-slate-200 rounded-[16px] px-5 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 transition-all" placeholder="Nome do secretário" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                          <label className="text-[8px] font-black uppercase text-slate-400 tracking-[2px]">Vice-Secretária(o)</label>
+                                          <input list="lista-obreiros" type="text" value={dep.viceSecretaria} onChange={e => {
+                                            const nc = [...congregacoes];
+                                            const d = nc[editingCongregacao].departamentos.find(dd => dd.tipo === tipoDep.id);
+                                            if (d) d.viceSecretaria = e.target.value;
+                                            setCongregacoes(nc);
+                                          }} className="w-full bg-slate-50 border border-slate-200 rounded-[16px] px-5 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 transition-all" placeholder="Nome do vice-secretário" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5 md:col-span-2">
+                                          <label className="text-[8px] font-black uppercase text-slate-400 tracking-[2px]">Data de Criação</label>
+                                          <input type="date" value={dep.dataCriacao} onChange={e => {
+                                            const nc = [...congregacoes];
+                                            const d = nc[editingCongregacao].departamentos.find(dd => dd.tipo === tipoDep.id);
+                                            if (d) d.dataCriacao = e.target.value;
+                                            setCongregacoes(nc);
+                                          }} className="w-full bg-slate-50 border border-slate-200 rounded-[16px] px-5 py-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 transition-all" />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                            </div>
                         </section>
                      </div>
                   </div>
+
+                  {/* INFO: Congregação vinculada a Obreiros */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-[24px] p-6 flex items-center gap-4">
+                    <span className="text-2xl">💡</span>
+                    <div>
+                      <p className="text-sm font-black text-amber-800">Vínculo com Cadastro de Obreiros</p>
+                      <p className="text-xs font-bold text-amber-600">Os obreiros listados acima são automaticamente filtrados pelo campo "Congregação" na aba Obreiros. Para adicionar mais, vá em <strong>Obreiros</strong> e defina a congregação de cada um.</p>
+                    </div>
+                  </div>
                </div>
 
-               <div className="p-10 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-slate-400 text-[10px] font-black uppercase tracking-widest px-14">
-                  <span>* Alterações pendentes de sincronização</span>
-                  <button onClick={() => setEditingCongregacao(null)} className="bg-[#0d4a8a] text-white px-12 py-4 rounded-full shadow-2xl hover:scale-105 transition-all">Concluir Edição</button>
+               <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-slate-400 text-[10px] font-bold uppercase tracking-widest px-14">
+                  <span>Dados salvos automaticamente</span>
+                  <div className="flex gap-4">
+                    <button onClick={() => { if(confirm(`Excluir "${cong.nome}" permanentemente?`)) { setCongregacoes(prev => prev.filter((_, i) => i !== editingCongregacao)); setEditingCongregacao(null); } }} className="bg-red-50 text-red-400 px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-100 transition-all">Excluir Templo</button>
+                    <button onClick={() => setEditingCongregacao(null)} className="bg-[#0d4a8a] text-white px-12 py-3 rounded-full shadow-2xl hover:scale-105 transition-all font-black text-[10px] uppercase tracking-widest">Concluir Edição</button>
+                  </div>
                </div>
             </motion.div>
           </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       {/* FOOTER INSTITUCIONAL */}
