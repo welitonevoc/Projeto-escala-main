@@ -1,31 +1,38 @@
-import { format, addDays, startOfWeek, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
-import { DIAS_SEMANA_OFICIAL, DIAS_OFFSET } from '../constants';
-import type { EscalaOficialData, EscalaLocalItem } from '../types';
+import { DIAS_SEMANA_OFICIAL } from '../constants';
+import type { EscalaOficialStore, EscalaLocalItem } from '../types';
 import { Search } from 'lucide-react';
 
 interface Props {
-  escalaOficial: EscalaOficialData;
-  escalaLocal: EscalaLocalItem[];
+  escalaOficialStore: EscalaOficialStore;
+  escalaLocalStore: EscalaLocalItem[];
   congregacoes: { nome: string }[];
   obreiros: { nome: string; cargo: string }[];
 }
 
-export function HistoriaTab({ escalaOficial, escalaLocal, congregacoes, obreiros }: Props) {
+export function HistoriaTab({ escalaOficialStore, escalaLocalStore, congregacoes, obreiros }: Props) {
   const [busca, setBusca] = useState('');
   const [filtroCong, setFiltroCong] = useState('');
+  const [semanaFiltro, setSemanaFiltro] = useState('');
 
-  const todasEscalas = Object.entries(escalaOficial).flatMap(([diaId, items]) =>
-    items.map(item => ({
-      dia: DIAS_SEMANA_OFICIAL.find(d => d.id === diaId)?.label || diaId,
-      congregacao: item.congregacao,
-      codigo: item.codigo,
-      escalados: item.escalados.filter(Boolean).join(', ')
-    }))
+  const semanas = Object.keys(escalaOficialStore).sort().reverse();
+
+  const todasEscalas = Object.entries(escalaOficialStore).flatMap(([week, dias]) =>
+    Object.entries(dias).flatMap(([diaId, items]) =>
+      items.map(item => ({
+        semana: week,
+        dia: DIAS_SEMANA_OFICIAL.find(d => d.id === diaId)?.label || diaId,
+        congregacao: item.congregacao,
+        codigo: item.codigo,
+        escalados: item.escalados.filter(Boolean).join(', ')
+      }))
+    )
   );
 
-  const locais = escalaLocal.map(item => ({
+  const locais = escalaLocalStore.map(item => ({
+    semana: item.dataInicio || '—',
     categoria: item.categoria,
     local: item.local,
     codigo: item.codigo,
@@ -34,7 +41,13 @@ export function HistoriaTab({ escalaOficial, escalaLocal, congregacoes, obreiros
 
   const filtrados = todasEscalas.filter(e =>
     (e.congregacao.toLowerCase().includes(busca.toLowerCase()) || e.escalados.toLowerCase().includes(busca.toLowerCase())) &&
-    (!filtroCong || e.congregacao === filtroCong)
+    (!filtroCong || e.congregacao === filtroCong) &&
+    (!semanaFiltro || e.semana === semanaFiltro)
+  );
+
+  const locaisFiltrados = locais.filter(e =>
+    (e.local.toLowerCase().includes(busca.toLowerCase()) || e.escalados.toLowerCase().includes(busca.toLowerCase())) &&
+    (!semanaFiltro || e.semana === semanaFiltro)
   );
 
   return (
@@ -60,6 +73,13 @@ export function HistoriaTab({ escalaOficial, escalaLocal, congregacoes, obreiros
           <option value="">Todas as congregações</option>
           {congregacoes.map((c, i) => <option key={i} value={c.nome}>{c.nome}</option>)}
         </select>
+        {semanas.length > 0 && (
+          <select value={semanaFiltro} onChange={e => setSemanaFiltro(e.target.value)}
+            className="bg-white border border-[#c5d8ef] rounded-full px-6 py-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+            <option value="">Todas as semanas</option>
+            {semanas.map(s => <option key={s} value={s}>{format(new Date(s + 'T03:00:00'), "dd/MM/yyyy", { locale: ptBR })}</option>)}
+          </select>
+        )}
       </div>
 
       {/* Escala Oficial */}
@@ -74,6 +94,7 @@ export function HistoriaTab({ escalaOficial, escalaLocal, congregacoes, obreiros
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-[#e6f0fa] border-b-2 border-[#a8c8e8]">
+                  <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Semana</th>
                   <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Dia</th>
                   <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Congregação</th>
                   <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Cód</th>
@@ -83,6 +104,7 @@ export function HistoriaTab({ escalaOficial, escalaLocal, congregacoes, obreiros
               <tbody className="divide-y divide-[#c5d8ef]">
                 {filtrados.map((e, i) => (
                   <tr key={i} className="hover:bg-slate-50/50">
+                    <td className="px-6 py-3 text-[0.7rem] font-mono text-slate-400">{e.semana}</td>
                     <td className="px-6 py-3 text-[0.8rem] font-semibold text-slate-600">{e.dia}</td>
                     <td className="px-6 py-3 font-bold text-slate-800">{e.congregacao}</td>
                     <td className="px-6 py-3">
@@ -100,15 +122,16 @@ export function HistoriaTab({ escalaOficial, escalaLocal, congregacoes, obreiros
       {/* Escala Local */}
       <div className="bg-white rounded-[32px] border border-[#c5d8ef] shadow-xl overflow-hidden">
         <div className="bg-[#1a5fa0] px-8 py-5">
-          <h3 className="text-white font-black uppercase tracking-widest text-sm">📋 Escala Local ({locais.length} registros)</h3>
+          <h3 className="text-white font-black uppercase tracking-widest text-sm">📋 Escala Local ({locaisFiltrados.length} registros)</h3>
         </div>
-        {locais.length === 0 ? (
+        {locaisFiltrados.length === 0 ? (
           <div className="p-12 text-center text-slate-400 font-bold">Nenhum registro encontrado.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-[#e6f0fa] border-b-2 border-[#a8c8e8]">
+                  <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Semana</th>
                   <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Categoria</th>
                   <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Local</th>
                   <th className="px-6 py-4 text-[0.75rem] font-bold text-[#0d3d7a] uppercase tracking-widest">Cód</th>
@@ -116,8 +139,9 @@ export function HistoriaTab({ escalaOficial, escalaLocal, congregacoes, obreiros
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#c5d8ef]">
-                {locais.map((e, i) => (
+                {locaisFiltrados.map((e, i) => (
                   <tr key={i} className="hover:bg-slate-50/50">
+                    <td className="px-6 py-3 text-[0.7rem] font-mono text-slate-400">{e.semana}</td>
                     <td className="px-6 py-3">
                       <span className={`text-[0.7rem] font-black px-3 py-1 rounded-full text-white ${
                         e.categoria === 'PP' ? 'bg-orange-500' : e.categoria === 'Portaria' ? 'bg-blue-500' : 'bg-slate-500'

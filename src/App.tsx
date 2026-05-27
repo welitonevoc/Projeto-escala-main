@@ -17,7 +17,7 @@ import { CalendarioTab } from "./tabs/CalendarioTab";
 import { ConfigTab } from "./tabs/ConfigTab";
 import { HistoriaTab } from "./tabs/HistoriaTab";
 
-import type { Obreiro, Congregacao, EscalaOficialData, EscalaLocalItem, Evento, TipoCulto, RegraCulto, DuplicateData } from "./types";
+import type { Obreiro, Congregacao, EscalaOficialData, EscalaOficialStore, EscalaLocalItem, Evento, TipoCulto, RegraCulto, DuplicateData } from "./types";
 import { criarDepartamentoVazio, DIAS_SEMANA_OFICIAL, DIAS_SEMANA_LOCAL, DIAS_SEMANA_PP, DIAS_SEMANA_PORTARIA, DIAS_OFFSET, CONGREGACOES_PADRAO, OBREIROS_PADRAO, ESCALA_LOCAL_PADRAO, TIPOS_CULTO_PADRAO, REGRAS_CULTO_PADRAO } from "./constants";
 
 function getWeekOfMonth(date: Date) {
@@ -36,8 +36,11 @@ function AppContent() {
 
   const [obreiros, setObreiros] = useLocalStorage<Obreiro[]>("obreiros", OBREIROS_PADRAO);
   const [congregacoes, setCongregacoes] = useLocalStorage<Congregacao[]>("congregacoes", CONGREGACOES_PADRAO);
-  const [escalaOficial, setEscalaOficial] = useLocalStorage<EscalaOficialData>("escalaOficial", {});
+  const [escalaOficialStore, setEscalaOficialStore] = useLocalStorage<EscalaOficialStore>("escalaOficial", {});
   const [escalaLocal, setEscalaLocal] = useLocalStorage<EscalaLocalItem[]>("escalaLocal", ESCALA_LOCAL_PADRAO);
+
+  const escalaOficial: EscalaOficialData = escalaOficialStore[dataInicio] || {};
+  const escalaLocalSemana = escalaLocal.filter(l => !l.dataInicio || l.dataInicio === dataInicio);
   const [eventos, setEventos] = useLocalStorage<Evento[]>("eventos", []);
   const [tiposCulto, setTiposCulto] = useLocalStorage<TipoCulto[]>("tiposCulto", TIPOS_CULTO_PADRAO);
   const [regrasCulto, setRegrasCulto] = useLocalStorage<RegraCulto[]>("regrasCulto", REGRAS_CULTO_PADRAO);
@@ -54,6 +57,26 @@ function AppContent() {
     { id: "historia", label: "📜 História" },
     { id: "config", label: "⚙️ Configurações" },
   ];
+
+  // Migration from old single-week format to multi-week store
+  useEffect(() => {
+    const raw = localStorage.getItem('ieadpe_escala_escalaOficial');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          const keys = Object.keys(parsed);
+          const isOldFormat = keys.length > 0 && !/^\d{4}-\d{2}-\d{2}$/.test(keys[0]);
+          if (isOldFormat) {
+            const migrated: EscalaOficialStore = { [dataInicio]: parsed as EscalaOficialData };
+            localStorage.setItem('ieadpe_escala_escalaOficial', JSON.stringify(migrated));
+            setEscalaOficialStore(migrated);
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    setEscalaLocal(prev => prev.map(item => !item.dataInicio ? { ...item, dataInicio } : item));
+  }, []);
 
   // Check status on mount only
   useEffect(() => {
@@ -79,20 +102,26 @@ function AppContent() {
       if (data.obreiros?.length) setObreiros(data.obreiros.map((r: any) => ({ nome: r[0], cargo: r[1], congregacao: r[2] })));
       if (data.congregacoes?.length) setCongregacoes(data.congregacoes.map((r: any) => ({ nome: r[0], endereco: r[1], responsavelNome: r[2], dataInauguracao: r[3], departamentos: r[4] ? JSON.parse(r[4]) : [] })));
 
-      const oficial: EscalaOficialData = {};
+      // Load ALL weeks for EscalaOficial
+      const store: EscalaOficialStore = {};
       data.escalaOficial?.forEach((row: any) => {
-        if (row[0] === dataInicio) {
-          if (!oficial[row[1]]) oficial[row[1]] = [];
-          oficial[row[1]].push({ congregacao: row[2], codigo: row[3], escalados: row[4]?.split(",") || [] });
-        }
+        const week = row[0];
+        if (!week) return;
+        if (!store[week]) store[week] = {};
+        if (!store[week][row[1]]) store[week][row[1]] = [];
+        store[week][row[1]].push({ congregacao: row[2], codigo: row[3], escalados: row[4]?.split(",") || [] });
       });
-      if (Object.keys(oficial).length === 0) {
-        DIAS_SEMANA_OFICIAL.forEach(dia => { oficial[dia.id] = (dia.filtros ?? []).map(cong => ({ congregacao: cong, codigo: "04", escalados: ["", "", ""] })); });
+      // Fill current week with defaults if empty
+      if (!store[dataInicio] || Object.keys(store[dataInicio]).length === 0) {
+        const current: EscalaOficialData = {};
+        DIAS_SEMANA_OFICIAL.forEach(dia => { current[dia.id] = (dia.filtros ?? []).map(cong => ({ congregacao: cong, codigo: "04", escalados: ["", "", ""] })); });
+        store[dataInicio] = current;
       }
-      setEscalaOficial(oficial);
+      setEscalaOficialStore(store);
 
-      const loadedLocal = data.escalaLocal?.map((r: any) => ({ categoria: r[1], data: r[2], local: r[3], codigo: r[4], escalados: r[5]?.split(",") || [] })) || [];
-      setEscalaLocal(loadedLocal.length === 0 ? ESCALA_LOCAL_PADRAO : loadedLocal);
+      // Load ALL weeks for EscalaLocal
+      const loadedLocal = data.escalaLocal?.map((r: any) => ({ dataInicio: r[0], categoria: r[1], data: r[2], local: r[3], codigo: r[4], escalados: r[5]?.split(",") || [] })) || [];
+      setEscalaLocal(loadedLocal.length === 0 ? ESCALA_LOCAL_PADRAO.map(e => ({ ...e, dataInicio })) : loadedLocal);
       setEventos(data.eventos?.map((r: any) => ({ id: Math.random().toString(36).substr(2, 9), data: r[0], descricao: r[1], cc: r[2], congregacao: r[3] })) || []);
       if (data.tiposCulto?.length) setTiposCulto(data.tiposCulto.map((r: any) => ({ nome: r[0], codigo: r[1] })));
       if (data.regrasCulto?.length) setRegrasCulto(data.regrasCulto.map((r: any) => ({ congregacao: r[0], dia: r[1], regraSemana: r.slice(2) })));
@@ -109,13 +138,17 @@ function AppContent() {
       const reqs = [
         { range: "Obreiros!A:C", values: obreiros.map(o => [o.nome, o.cargo, o.congregacao]) },
         { range: "Congregacoes!A:E", values: congregacoes.map(c => [c.nome, c.endereco, c.responsavelNome, c.dataInauguracao, JSON.stringify(c.departamentos)]) },
-        { range: "EscalaLocal!A:F", values: escalaLocal.map(l => [dataInicio, l.categoria, l.data, l.local, l.codigo, l.escalados.join(",")]) },
+        { range: "EscalaLocal!A:G", values: escalaLocal.map(l => [l.dataInicio || dataInicio, l.categoria, l.data, l.local, l.codigo, l.escalados.join(","), ""]) },
         { range: "Eventos!A:D", values: eventos.map(e => [e.data, e.descricao, e.cc, e.congregacao]) },
         { range: "TiposCulto!A:B", values: tiposCulto.map(t => [t.nome, t.codigo]) },
         { range: "RegrasCulto!A:G", values: regrasCulto.map(r => [r.congregacao, r.dia, ...r.regraSemana]) },
       ];
       const oficialRows: any[] = [];
-      Object.entries(escalaOficial).forEach(([dia, items]) => items.forEach(item => oficialRows.push([dataInicio, dia, item.congregacao, item.codigo, item.escalados.join(",")])));
+      Object.entries(escalaOficialStore).forEach(([week, dias]) => {
+        Object.entries(dias).forEach(([dia, items]) => {
+          items.forEach(item => oficialRows.push([week, dia, item.congregacao, item.codigo, item.escalados.join(",")]));
+        });
+      });
       reqs.push({ range: "EscalaOficial!A:E", values: oficialRows });
 
       for (const req of reqs) {
@@ -128,10 +161,10 @@ function AppContent() {
 
   const aplicarRegrasGerais = useCallback(() => {
     const start = parseISO(dataInicio);
-    const newOficial = JSON.parse(JSON.stringify(escalaOficial));
-    Object.keys(newOficial).forEach(diaId => {
+    const current = JSON.parse(JSON.stringify(escalaOficial)) as EscalaOficialData;
+    Object.keys(current).forEach(diaId => {
       const weekNum = getWeekOfMonth(addDays(start, DIAS_OFFSET[diaId] || 0));
-      newOficial[diaId] = (newOficial[diaId] || []).map((item: any) => {
+      current[diaId] = (current[diaId] || []).map((item: any) => {
         const regra = regrasCulto.find(r => r.congregacao === item.congregacao && r.dia === diaId);
         if (regra && regra.regraSemana[weekNum - 1]) {
           const type = tiposCulto.find(t => t.nome === regra.regraSemana[weekNum - 1]);
@@ -140,13 +173,13 @@ function AppContent() {
         return item;
       });
     });
-    setEscalaOficial(newOficial);
+    setEscalaOficialStore(prev => ({ ...prev, [dataInicio]: current }));
     addToast("success", `Regras aplicadas para a ${getWeekOfMonth(start)}ª semana!`);
   }, [dataInicio, escalaOficial, regrasCulto, tiposCulto]);
 
   const verificarDuplicadoNoDia = useCallback((valor: string, diaId: string, localAtual: string) => {
     if (!valor) return;
-    const escalasDaEscalaLocal = escalaLocal.filter(l => {
+    const escalasDaEscalaLocal = escalaLocalSemana.filter(l => {
       const diaInfo = [...DIAS_SEMANA_LOCAL, ...DIAS_SEMANA_PP, ...DIAS_SEMANA_PORTARIA].find((d: any) => d.id === l.data);
       return diaInfo?.parent === diaId || diaInfo?.id === diaId;
     });
@@ -160,7 +193,7 @@ function AppContent() {
         }
       }
     }
-  }, [escalaLocal, escalaOficial]);
+  }, [escalaLocalSemana, escalaOficial]);
 
   // Congregation helpers
   const updateCongregacao = useCallback((idx: number, field: string, value: any) => {
@@ -271,15 +304,20 @@ function AppContent() {
                   escalaOficial={escalaOficial}
                   dataInicio={dataInicio}
                   obreiros={obreiros}
-                  onUpdate={setEscalaOficial}
+                  onUpdate={(data: EscalaOficialData) => setEscalaOficialStore(prev => ({ ...prev, [dataInicio]: data }))}
                   onDuplicateCheck={verificarDuplicadoNoDia}
                 />
               )}
               {activeTab === "escala-local" && (
                 <EscalaLocalTab
-                  escalaLocal={escalaLocal}
+                  escalaLocal={escalaLocalSemana}
                   dataInicio={dataInicio}
-                  onUpdate={setEscalaLocal}
+                  onUpdate={(items: EscalaLocalItem[]) => {
+                    setEscalaLocal(prev => {
+                      const withoutCurrent = prev.filter(l => l.dataInicio && l.dataInicio !== dataInicio);
+                      return [...withoutCurrent, ...items.map(item => ({ ...item, dataInicio: item.dataInicio || dataInicio }))];
+                    });
+                  }}
                   onDuplicateCheck={verificarDuplicadoNoDia}
                 />
               )}
@@ -307,8 +345,8 @@ function AppContent() {
               )}
               {activeTab === "historia" && (
                 <HistoriaTab
-                  escalaOficial={escalaOficial}
-                  escalaLocal={escalaLocal}
+                  escalaOficialStore={escalaOficialStore}
+                  escalaLocalStore={escalaLocal}
                   congregacoes={congregacoes}
                   obreiros={obreiros}
                 />

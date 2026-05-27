@@ -34,12 +34,15 @@ export interface EscalaOficialData {
 }
 
 export interface EscalaLocalItem {
+  dataInicio?: string;
   categoria: string;
   data: string;
   local: string;
   codigo: string;
   escalados: string[];
 }
+
+export type EscalaOficialStore = Record<string, EscalaOficialData>;
 
 export interface Evento {
   id: string;
