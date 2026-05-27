@@ -58,9 +58,12 @@ function AppContent() {
     { id: "config", label: "⚙️ Configurações" },
   ];
 
-  // Migration from old single-week format to multi-week store
+  // Migration + seeding (single effect to avoid race conditions)
   useEffect(() => {
     const raw = localStorage.getItem('ieadpe_escala_escalaOficial');
+    let store: EscalaOficialStore = {};
+    let needsUpdate = false;
+
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
@@ -68,15 +71,36 @@ function AppContent() {
           const keys = Object.keys(parsed);
           const isOldFormat = keys.length > 0 && !/^\d{4}-\d{2}-\d{2}$/.test(keys[0]);
           if (isOldFormat) {
-            const migrated: EscalaOficialStore = { [dataInicio]: parsed as EscalaOficialData };
-            localStorage.setItem('ieadpe_escala_escalaOficial', JSON.stringify(migrated));
-            setEscalaOficialStore(migrated);
+            store = { [dataInicio]: parsed as EscalaOficialData };
+            needsUpdate = true;
+          } else {
+            store = parsed as EscalaOficialStore;
           }
         }
       } catch { /* ignore */ }
     }
+
+    if (!store[dataInicio] || Object.keys(store[dataInicio]).length === 0) {
+      store[dataInicio] = {};
+      DIAS_SEMANA_OFICIAL.forEach(dia => { store[dataInicio][dia.id] = (dia.filtros ?? []).map(cong => ({ congregacao: cong, codigo: "04", escalados: ["", "", ""] })); });
+      needsUpdate = true;
+    }
+    if (needsUpdate) {
+      localStorage.setItem('ieadpe_escala_escalaOficial', JSON.stringify(store));
+      setEscalaOficialStore(store);
+    }
+
     setEscalaLocal(prev => prev.map(item => !item.dataInicio ? { ...item, dataInicio } : item));
   }, []);
+
+  // Seed store when user changes to a week without data
+  useEffect(() => {
+    if (!escalaOficialStore[dataInicio]) {
+      const seed: EscalaOficialData = {};
+      DIAS_SEMANA_OFICIAL.forEach(dia => { seed[dia.id] = (dia.filtros ?? []).map(cong => ({ congregacao: cong, codigo: "04", escalados: ["", "", ""] })); });
+      setEscalaOficialStore(prev => ({ ...prev, [dataInicio]: seed }));
+    }
+  }, [dataInicio, escalaOficialStore]);
 
   // Check status on mount only
   useEffect(() => {
@@ -141,7 +165,7 @@ function AppContent() {
         { range: "EscalaLocal!A:G", values: escalaLocal.map(l => [l.dataInicio || dataInicio, l.categoria, l.data, l.local, l.codigo, l.escalados.join(","), ""]) },
         { range: "Eventos!A:D", values: eventos.map(e => [e.data, e.descricao, e.cc, e.congregacao]) },
         { range: "TiposCulto!A:B", values: tiposCulto.map(t => [t.nome, t.codigo]) },
-        { range: "RegrasCulto!A:G", values: regrasCulto.map(r => [r.congregacao, r.dia, ...r.regraSemana]) },
+        { range: "RegrasCulto!A:H", values: regrasCulto.map(r => [r.congregacao, r.dia, ...r.regraSemana]) },
       ];
       const oficialRows: any[] = [];
       Object.entries(escalaOficialStore).forEach(([week, dias]) => {
