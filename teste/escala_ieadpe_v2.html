@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escala de Cultos - IEADPE (PE)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Calibri', sans-serif;
+            background: #eef3f9;
+            margin: 0;
+            padding: 20px;
+            color: #0a2a4a;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 24px 20px 30px 20px;
+            border-top: 6px solid #1a5fa0;
+        }
+        .header-iead {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #b8d0e8;
+            padding-bottom: 15px;
+        }
+        .header-iead h1 {
+            font-size: 1.9rem;
+            margin: 0;
+            color: #0e3d6e;
+        }
+        .header-iead h1 span {
+            color: #1a5fa0;
+        }
+        .data-semana {
+            background: #e6f0fa;
+            padding: 10px 15px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .data-semana label {
+            font-weight: bold;
+        }
+        .data-semana input {
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 1px solid #a8c8e8;
+            font-family: monospace;
+        }
+        /* Painel de códigos no topo */
+        .codigos-painel-topo {
+            background: #f5f9ff;
+            border-radius: 20px;
+            border: 1px solid #c5daf0;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .codigos-painel-topo h3 {
+            background: #0d4a8a;
+            color: white;
+            margin: -12px -15px 12px -15px;
+            padding: 8px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        .grid-codigos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 6px;
+            font-size: 0.75rem;
+        }
+        .cod-item {
+            background: white;
+            border-left: 3px solid #1a5fa0;
+            padding: 4px 6px;
+            border-radius: 8px;
+        }
+        /* Escalas */
+        .day-section {
+            margin-bottom: 35px;
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #c5daf0;
+            overflow-x: auto;
+        }
+        .day-title {
+            background: #0d4a8a;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-left: 8px solid #1a70b8;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        .day-date {
+            font-size: 0.8rem;
+            font-weight: normal;
+            background: #1a5a9a;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #e6f0fa;
+            color: #0d3d7a;
+            padding: 10px 5px;
+            border-bottom: 2px solid #a8c8e8;
+            text-align: center;
+        }
+        td {
+            border: 1px solid #c5d8ef;
+            padding: 6px 4px;
+            vertical-align: middle;
+        }
+        .cong-nome {
+            font-weight: 600;
+            background-color: #f5f9ff;
+            width: 25%;
+        }
+        .codigo {
+            text-align: center;
+            width: 8%;
+            font-weight: bold;
+            color: #1a5fa0;
+        }
+        .escalados-cell {
+            width: 45%;
+        }
+        .escalados-cell select {
+            width: 32%;
+            margin: 0 1%;
+            padding: 4px 2px;
+            border-radius: 8px;
+            border: 1px solid #a8c8e8;
+            font-size: 0.75rem;
+            background: #fffef7;
+        }
+        .btn-add-row {
+            background: #1a70b820;
+            border: 1px dashed #1a5fa0;
+            padding: 6px 12px;
+            margin: 8px 0 5px 0;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #0d3d7a;
+        }
+        .btn-salvar {
+            background: #0d4a8a;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .output {
+            background: #f5f9ff;
+            border: 1px solid #c0d8f0;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 30px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow: auto;
+        }
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.7rem;
+            color: #4a6a9a;
+        }
+
+        .header-logo-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 0;
+        }
+        .header-pastores {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+        .pastor-item {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+        .pastor-titulo {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #0e3d6e;
+        }
+        .pastor-cargo {
+            font-size: 0.78rem;
+            color: #1a5fa0;
+            font-style: italic;
+        }
+        .header-logo-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+        .header-ieadpe-nome {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            flex: 1;
+        }
+        .ieadpe-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #0e3d6e;
+            letter-spacing: 3px;
+            line-height: 1;
+        }
+        .ieadpe-filial {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1a5fa0;
+            letter-spacing: 1px;
+        }
+
+
+        /* ── BANCO DE DADOS / SEMANAS ─────────────────────────────── */
+        .db-painel {
+            background: #f0f6ff;
+            border: 2px solid #1a5fa0;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 22px;
+        }
+        .db-painel h3 {
+            background: #0d4a8a;
+            color: white;
+            margin: -16px -18px 14px -18px;
+            padding: 10px 16px;
+            border-radius: 14px 14px 0 0;
+            font-size: 0.97rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .db-acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .btn-db {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.82rem;
+        }
+        .btn-db-salvar { background: #0d4a8a; color: white; }
+        .btn-db-carregar { background: #1a70b8; color: white; }
+        .btn-db-novo { background: #2a8a2a; color: white; }
+        .btn-db-excluir { background: #cc3a1a; color: white; }
+        .db-semanas-lista {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .semana-tag {
+            background: white;
+            border: 1.5px solid #1a5fa0;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .semana-tag:hover { background: #e0eeff; }
+        .semana-tag.ativa { background: #0d4a8a; color: white; border-color: #0d4a8a; }
+        .semana-tag .del-tag { color: #cc0000; cursor: pointer; font-weight: bold; margin-left:4px; }
+        .semana-tag.ativa .del-tag { color: #ffaaaa; }
+        .db-status {
+            font-size: 0.78rem;
+            color: #1a5fa0;
+            margin-top: 6px;
+            min-height: 18px;
+        }
+        .toast-ok {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #0d4a8a; color: white; padding: 12px 28px;
+            border-radius: 30px; font-weight: bold; font-size: 0.9rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25); z-index: 9999;
+            animation: fadeInOut 2.5s ease forwards;
+        }
+        @keyframes fadeInOut {
+            0%{opacity:0;transform:translateX(-50%) translateY(10px)}
+            15%{opacity:1;transform:translateX(-50%) translateY(0)}
+            75%{opacity:1}
+            100%{opacity:0}
+        }
+
+        @media (max-width: 800px) {
+            .escalados-cell select { width: 100%; margin: 2px 0; display: block; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-iead">
+        <div class="header-logo-row">
+            <div class="header-pastores">
+                <div class="pastor-item">
+                    <span class="pastor-titulo">Pr. Ailton José Alves</span>
+                    <span class="pastor-cargo">Presidente da IEADPE</span>
+                </div>
+                <div class="pastor-item">
+                    <span class="pastor-titulo">Pr. Severino Guilhermino</span>
+                    <span class="pastor-cargo">Pastor da Filial</span>
+                </div>
+            </div>
+            <div class="header-logo-center">
+                <img src="data:image/jpeg;base64,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" alt="Logo IEADPE" class="logo-img">
+            </div>
+            <div class="header-ieadpe-nome">
+                <span class="ieadpe-title">IEADPE</span>
+                <span class="ieadpe-filial">FILIAL ARAÇOIABA</span>
+            </div>
+        </div>
+        <div class="data-semana">
+            <label>📅 Semana de (segunda-feira):</label>
+            <input type="date" id="dataInicio" value="2026-04-20">
+            <button id="atualizarDatas" class="btn-add-row" style="background:#0d4a8a; color:white;">Atualizar Datas</button>
+        </div>
+    </div>
+
+    <!-- Painel de códigos no topo -->
+    <div class="codigos-painel-topo">
+        <h3>📋 CÓDIGOS DOS TRABALHOS</h3>
+        <div class="grid-codigos" id="listaCodigos"></div>
+    </div>
+
+
+    <!-- ── BANCO DE DADOS DE ESCALAS ──────────────────────────── -->
+    <div class="db-painel">
+        <h3>🗄️ BANCO DE DADOS DE ESCALAS</h3>
+        <div class="db-acoes">
+            <button class="btn-db btn-db-salvar" onclick="dbSalvar()">💾 Salvar Semana Atual</button>
+            <button class="btn-db btn-db-novo" onclick="dbNovaSemana()">📋 Nova Semana em Branco</button>
+            <span style="color:#555;font-size:0.82rem;">Clique em uma semana salva para carregar:</span>
+        </div>
+        <div class="db-semanas-lista" id="dbSemanasList"></div>
+        <div class="db-status" id="dbStatus">Nenhuma semana carregada do banco.</div>
+    </div>
+
+    <!-- Escalas (agora em largura total) -->
+    <div class="escalas-container">
+        <!-- Segunda -->
+        <div class="day-section" data-dia="segunda">
+            <div class="day-title">SEGUNDA-FEIRA <span class="day-date" id="data-segunda"></span></div>
+            <table id="tab-segunda">
+                <thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th style="width:60px"></th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('segunda')">+ Adicionar congregação</button></div>
+        </div>
+
+        <!-- Terça -->
+        <div class="day-section" data-dia="terca">
+            <div class="day-title">TERÇA-FEIRA <span class="day-date" id="data-terca"></span></div>
+            <table id="tab-terca"><thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody></table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('terca')">+ Adicionar congregação</button></div>
+        </div>
+
+        <!-- Quarta -->
+        <div class="day-section" data-dia="quarta">
+            <div class="day-title">QUARTA-FEIRA <span class="day-date" id="data-quarta"></span></div>
+            <table id="tab-quarta"><thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody></table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('quarta')">+ Adicionar congregação</button></div>
+        </div>
+
+        <!-- Quinta -->
+        <div class="day-section" data-dia="quinta">
+            <div class="day-title">QUINTA-FEIRA - NOITE <span class="day-date" id="data-quinta"></span></div>
+            <table id="tab-quinta"><thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody></table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('quinta')">+ Adicionar congregação</button></div>
+        </div>
+
+        <!-- Sexta -->
+        <div class="day-section" data-dia="sexta">
+            <div class="day-title">SEXTA-FEIRA - NOITE <span class="day-date" id="data-sexta"></span></div>
+            <table id="tab-sexta"><thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody></table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('sexta')">+ Adicionar congregação</button></div>
+        </div>
+
+        <!-- Sábado -->
+        <div class="day-section" data-dia="sabado">
+            <div class="day-title">SÁBADO - NOITE <span class="day-date" id="data-sabado"></span></div>
+            <table id="tab-sabado"><thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody></table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('sabado')">+ Adicionar congregação</button></div>
+        </div>
+
+        <!-- Domingo Manhã -->
+        <div class="day-section" data-dia="domingoManha">
+            <div class="day-title">DOMINGO - MANHÃ <span class="day-date" id="data-domingoManha"></span></div>
+            <table id="tab-domingoManha"><thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody></table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('domingoManha')">+ Adicionar congregação</button></div>
+        </div>
+
+        <!-- Domingo Noite -->
+        <div class="day-section" data-dia="domingoNoite">
+            <div class="day-title">DOMINGO - NOITE <span class="day-date" id="data-domingoNoite"></span></div>
+            <table id="tab-domingoNoite"><thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody></table>
+            <div style="padding:6px"><button class="btn-add-row" onclick="adicionarLinha('domingoNoite')">+ Adicionar congregação</button></div>
+        </div>
+
+        <div style="text-align:center; margin-top:15px;">
+            <button class="btn-salvar" id="btnExportar">📋 VISUALIZAR ESCALA COMPLETA (JSON)</button>
+        </div>
+        <div id="outputArea" class="output">
+            ⚡ Clique no botão para ver a escala gerada.
+        </div>
+    </div>
+    <footer>
+        Baseado na lista oficial de obreiros • Cores IEADPE • Cada célula "ESCALADOS" permite até 3 obreiros (seletores lado a lado)
+    </footer>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // LISTA DE OBREIROS (completa)
+    const listaObreiros = [
+        "Pr. Severino Guilhermino", "Pb. Amauri Pereira", "Pb. Ednaldo Antônio", "Pb. Edmilson Clemente",
+        "Pb. Luiz José", "Pb. Rogério Brito", "Pb. Marcos Henrique", "Pb. Otoniel Luiz",
+        "Pb. Elias Alberto", "Pb. Herivelton Marculino", "Pb. Jair Domingos", "Pb. Manassés Pereira",
+        "Pb. Vitor Edson", "Pb. Antônio Narciso", "Pb. Gilcelio Felipe", "Pb. Pedro José",
+        "Pb. Antônio Alexandre", "Pb. Espedito Gomes", "Pb. João Firmino", "Pb. Leonardo Manoel",
+        "Dc. Givanildo Olímpio", "Dc. Joseny Cândido", "Dc. Kleitonlee Marcionilo", "Dc. Waltermy Vieira",
+        "Dc. Daniel Domingos", "Dc. José Anísio", "Dc. João Severino", "Dc. Lucas Gabriel",
+        "Dc. Nílson Carlos", "Dc. Antônio Neto", "Dc. José Domingos", "Dc. Carlos Bone",
+        "Dc. Diogo Santana", "Dc. Dorgival Gervásio", "Dc. Josivaldo Mariano", "Dc. Marcos Cavalcante",
+        "Dc. Samuel Amaro", "Dc. José Santiago", "Dc. Valter Lopes *", "Dc. Anílton Antônio",
+        "Dc. Antônio Figueiredo", "Dc. Ezequiel Eduardo", "Dc. Helton Carvalho", "Dc. José Carlos",
+        "Dc. José Joaquim", "Dc. José Menezes", "Dc. Maciel Evaristo", "Dc. Manuel Elias",
+        "Dc. Roberto Antônio", "Dc. Rosemiro Francisco", "Dc. Severino José", "Dc. Damião Arruda",
+        "Dc. Evanilson Pereira", "Dc. Antônio Gomes", "Dc. José Gonçalves", "Aux. Severino Gomes",
+        "Dc. Zequias Alves", "Dc. Benjamin Alexandre", "Aux. Cláudio Félix", "Aux. Jefferson Balbino",
+        "Aux. Valderli Herculano", "Aux. Waldemir Herculano", "Aux. Edinael Eliel", "Aux. José Henrique",
+        "Aux. Cleiton Gonçalves", "Aux. Fábio Feliciano", "Aux. Raú Ferreira", "Aux. Severino Maurício",
+        "Dc. José Hélio", "Aux. Bruno Bezerra", "Aux. Dorgivânio Gervásio", "Aux. Jessé Sabino",
+        "Aux. Luiz Cavalcante", "Aux. Maurício Avelino", "Aux. Oseias Amaro", "Aux. Ozeias Júnior",
+        "Aux. Paulo Henrique", "Aux. Rogério Lira", "Aux. Sebastião Francisco", "Aux. Valmir Gervásio",
+        "Aux. Paulo Cândido", "Aux. Paulo Carlos", "Aux. Ricardo Florentino", "Aux. Genival Severino",
+        "Aux. José Célio", "Aux. Ricardo Júnior", "Aux. Sandro Fernandes", "Aux. Wellington José",
+        "Dc. Rodrigo Siqueira", "Aux. Adriano Barbosa", "Aux. Raison José", "Aux. Antônio Barbosa",
+        "Aux. Claudemir Severino", "Aux. Dálton Almeida", "Aux. Edjael Francisco", "Aux. Jeremias Marculino",
+        "Aux. Jogle Uchôa", "Aux. José Francisco Filho", "Aux. Macksuel Gomes", "Aux. Marllon Gomes",
+        "Aux. Tiago Veríssimo", "Dc. Joalison Jorge", "Dc. Murilo Henrique", "Dc. Wermison Souza",
+        "Aux. Alexandre Silva", "Aux. Jesse Francisco", "Aux. Manoel Alves", "Aux. Matheus Alves",
+        "Aux. Adelino Gomes", "Aux. Ivanildo Marculino", "Aux. Joabe Rodrigues", "Aux. Luciano Evaristo",
+        "Aux. Edson Teixeira", "Aux. Gustavo Miguel", "Aux. Israel Soares", "Aux. João Paulino",
+        "Aux. José Dionísio", "Aux. José Edvaldo", "Aux. José Farias", "Aux. José Mariano",
+        "Aux. Arnaldo Bento", "Aux. Moises Rodrigues", "Aux. Local. Roberto Joaquim", "Aux. Local. Luciano Eronildo",
+        "Aux. Local. Sebastião Ribeiro", "Aux. Local. Isaías Pereira", "Aux. Local. José Otávio", "Aux. Local. Vinícius José",
+        "Aux. Local. José Adriano", "Aux. Local. Veronildo Manoel", "Aux. Local. Alan Herculano", "Aux. Local. Deyvison Felix",
+        "Aux. Local. Joseilton Alves", "Aux. Local. Kelvis Lopes", "Aux. Local. Vanduir josé", "Aux. Local. Cristiano Antônio",
+        "Aux. Local. Daniel Felipe", "Aux. Local. José Valter", "Aux. Local. Luiz Pereira", "Aux. Local. Anderson Ferreira",
+        "Aux. Local. José Jeverson", "Aux. Local. Miqueias Tavares", "Aux. Local. Raldny Antonio", "Aux. Local. Adriano Albuquerque",
+        "Aux. Local. André Francisco", "Aux. Local. Rafael Tenório", "Aux. Local. Allyson Nyerton", "Aux. Local. Daniel Lira",
+        "Aux. Local. Edvan José", "Aux. Local. Everaldo Alves", "Aux. Local. José Marculino", "Aux. Local. Junark Marculino",
+        "Aux. Local. Lucas França", "Aux. Local. Mario Fernandes", "Aux. Local. Severino Alexandre", "Aux. Local. Washington Souza",
+        "Aux. Local. Israel Antonio", "Aux. Local. Josenildo José", "Aux. Local. Miguel Mendes", "Aux. Local. Pedro Henrique",
+        "Aux. Local. Mario Filho", "Aux. Local. Ricardo José", "Aux. Local. Gilmario Terto", "Aux. Local. Miguel Cândido",
+        "Aux. Local. Carlos Roberto", "Aux. Local. Lenildo Freitas", "Aux. Local. José Bento"
+    ].sort();
+
+    // ── VERIFICAR DUPLICADOS NO DIA ──────────────────────────────
+    function verificarDuplicadoNoDia(selectAlterado) {
+        const valor = selectAlterado.value;
+        if (!valor) return; // vazio, sem verificação
+
+        // Achar o day-section pai
+        const daySection = selectAlterado.closest('.day-section');
+        if (!daySection) return;
+        const diaNome = daySection.querySelector('.day-title')?.firstChild?.textContent?.trim() || 'este dia';
+
+        // Coletar todos os selects do dia, exceto o atual
+        const todosSelects = [...daySection.querySelectorAll('select')].filter(s => s !== selectAlterado);
+        
+        // Verificar se o valor já está selecionado em outra linha
+        for (const s of todosSelects) {
+            if (s.value === valor) {
+                // Encontrar nome da congregação da linha conflitante
+                const linhaConflito = s.closest('tr');
+                const congConflito = linhaConflito ? (linhaConflito.cells[0]?.innerText || linhaConflito.cells[0]?.querySelector('input')?.value || '') : '';
+                
+                // Mostrar modal de aviso
+                mostrarAvisoConflito(valor, congConflito, diaNome, selectAlterado);
+                break;
+            }
+        }
+    }
+
+    function mostrarAvisoConflito(obreiro, congConflito, diaNome, selectOrigem) {
+        // Criar modal
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+        
+        const modal = document.createElement('div');
+        modal.style.cssText = 'background:white;border-radius:16px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);border-top:5px solid #e05c2a;text-align:center;';
+        
+        modal.innerHTML = `
+            <div style="font-size:2.5rem;margin-bottom:10px;">⚠️</div>
+            <h3 style="color:#b83a10;margin:0 0 12px;font-size:1.1rem;">Obreiro já escalado neste dia!</h3>
+            <p style="color:#333;margin:0 0 8px;font-size:0.95rem;">
+                <strong>${obreiro}</strong>
+            </p>
+            <p style="color:#555;margin:0 0 18px;font-size:0.85rem;background:#fff3f0;padding:10px;border-radius:8px;border-left:4px solid #e05c2a;">
+                Já está escalado em <strong>${congConflito}</strong> neste mesmo dia.
+            </p>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <button id="btnManterConflito" style="background:#0d4a8a;color:white;border:none;padding:10px 20px;border-radius:30px;cursor:pointer;font-weight:bold;font-size:0.9rem;">
+                    ✅ Manter assim mesmo
+                </button>
+                <button id="btnRemoverConflito" style="background:#e05c2a;color:white;border:none;padding:10px 20px;border-radius:30px;cursor:pointer;font-weight:bold;font-size:0.9rem;">
+                    ❌ Remover desta vaga
+                </button>
+            </div>
+        `;
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        
+        document.getElementById('btnManterConflito').onclick = () => {
+            document.body.removeChild(overlay);
+        };
+        document.getElementById('btnRemoverConflito').onclick = () => {
+            selectOrigem.value = "";
+            document.body.removeChild(overlay);
+        };
+    }
+
+    function criarSelectsEscalados(valor1="", valor2="", valor3="") {
+        const container = document.createElement("div");
+        container.style.display = "flex";
+        container.style.gap = "4px";
+        container.style.flexWrap = "wrap";
+        const makeSelect = (valor) => {
+            const select = document.createElement("select");
+            const optVazio = document.createElement("option"); optVazio.value = ""; optVazio.textContent = "─";
+            select.appendChild(optVazio);
+            listaObreiros.forEach(n => {
+                const opt = document.createElement("option");
+                opt.value = n; opt.textContent = n;
+                if (n === valor) opt.selected = true;
+                select.appendChild(opt);
+            });
+            select.style.flex = "1";
+            select.style.minWidth = "110px";
+            // ── verificar duplicado ao mudar ──
+            select.addEventListener('change', () => verificarDuplicadoNoDia(select));
+            return select;
+        };
+        container.appendChild(makeSelect(valor1));
+        container.appendChild(makeSelect(valor2));
+        container.appendChild(makeSelect(valor3));
+        return container;
+    }
+
+    // Dados fixos
+    const dadosFixos = {
+        segunda: [
+            {cong:"Chã do Conselho 01", cod:"04", esc1:"Pb. Leonardo Manoel", esc2:"", esc3:""},
+            {cong:"Monte das Oliveiras", cod:"04", esc1:"Pb. Pedro José", esc2:"", esc3:""},
+            {cong:"Av. Brasil", cod:"04", esc1:"Pb. Gilcelio Felipe", esc2:"", esc3:""},
+            {cong:"Engenho Vinagre", cod:"04", esc1:"Dc. José Anísio", esc2:"", esc3:""},
+            {cong:"Penedinho", cod:"04", esc1:"Dc. Rodrigo Siqueira", esc2:"", esc3:""}
+        ],
+        terca: [
+            {cong:"Templo Matriz", cod:"04", esc1:"Pr. Severino Guilhermino", esc2:"", esc3:""}
+        ],
+        quarta: [
+            {cong:"Templo Matriz", cod:"01", esc1:"Pb. Herivelton Marculino", esc2:"", esc3:""},
+            {cong:"Monte das Oliveiras", cod:"01", esc1:"Pb. Pedro José", esc2:"", esc3:""},
+            {cong:"Monte Carmelo", cod:"01", esc1:"Pb. Elias Alberto", esc2:"", esc3:""},
+            {cong:"Av. Brasil", cod:"01", esc1:"Pb. Gilcelio Felipe", esc2:"", esc3:""},
+            {cong:"Nova Canaã", cod:"01", esc1:"Pb. Edmilson Clemente", esc2:"", esc3:""},
+            {cong:"Itapipiré", cod:"01", esc1:"Pb. Amauri Pereira", esc2:"", esc3:""},
+            {cong:"Quinze", cod:"01", esc1:"Pb. Antônio Alexandre", esc2:"", esc3:""},
+            {cong:"Lot. Bom Jesus", cod:"01", esc1:"Pb. Marcos Henrique", esc2:"", esc3:""},
+            {cong:"Belo Oriente", cod:"01", esc1:"Pb. Ednaldo Antônio", esc2:"", esc3:""},
+            {cong:"Jardim Nova Esperança", cod:"01", esc1:"Dc. Nílson Carlos", esc2:"", esc3:""},
+            {cong:"Engenho Vinagre", cod:"01", esc1:"", esc2:"", esc3:""},
+            {cong:"Três Ladeiras", cod:"01", esc1:"Dc. Murilo Henrique", esc2:"", esc3:""},
+            {cong:"Vila Canaã", cod:"01", esc1:"", esc2:"", esc3:""},
+            {cong:"Caraú", cod:"01", esc1:"Aux. Genival Severino", esc2:"", esc3:""},
+            {cong:"Penedinho", cod:"01", esc1:"Dc. Rodrigo Siqueira", esc2:"", esc3:""},
+            {cong:"Chã do Conselho 01", cod:"01", esc1:"Dc. Marcos Cavalcante", esc2:"", esc3:""},
+            {cong:"Chã do Conselho 02", cod:"01", esc1:"Pb. Leonardo Manoel", esc2:"", esc3:""},
+            {cong:"Lot. Fontes de Aldeia", cod:"01", esc1:"Pb. Otoniel Luiz", esc2:"", esc3:""},
+            {cong:"Alto Planalto", cod:"01", esc1:"Dc. Zequias Alves", esc2:"", esc3:""},
+            {cong:"Itaboraí", cod:"01", esc1:"Pb. Rogério Brito", esc2:"", esc3:""}
+        ],
+        quinta: [
+            {cong:"Quinze", cod:"04", esc1:"Pb. Antônio Alexandre", esc2:"", esc3:""},
+            {cong:"Três Ladeiras", cod:"04", esc1:"Dc. Murilo Henrique", esc2:"", esc3:""},
+            {cong:"Belo Oriente", cod:"04", esc1:"Pb. Ednaldo Antônio", esc2:"", esc3:""},
+            {cong:"Nova Canaã", cod:"04", esc1:"Pb. Edmilson Clemente", esc2:"", esc3:""},
+            {cong:"Lot. Fontes de Aldeia", cod:"04", esc1:"Pb. Otoniel Luiz", esc2:"", esc3:""},
+            {cong:"Lot. Bom Jesus", cod:"04", esc1:"Pb. Marcos Henrique", esc2:"", esc3:""},
+            {cong:"Itaboraí", cod:"04", esc1:"Pb. Rogério Brito", esc2:"", esc3:""}
+        ],
+        sexta: [
+            {cong:"Monte Carmelo", cod:"04", esc1:"Pb. Elias Alberto", esc2:"", esc3:""},
+            {cong:"Jardim Nova Esperança", cod:"04", esc1:"Dc. Nílson Carlos", esc2:"", esc3:""},
+            {cong:"Itapipiré", cod:"04", esc1:"Pb. Amauri Pereira", esc2:"", esc3:""},
+            {cong:"Alto Planalto", cod:"04", esc1:"Dc. Zequias Alves", esc2:"", esc3:""},
+            {cong:"Vila Canaã", cod:"03", esc1:"Dc. José Anísio", esc2:"", esc3:""},
+            {cong:"Chã do Conselho 02", cod:"03", esc1:"Pb. Leonardo Manoel", esc2:"", esc3:""}
+        ],
+        sabado: [
+            {cong:"Itapipiré", cod:"07", esc1:"Pb. Amauri Pereira", esc2:"", esc3:""},
+            {cong:"Três Ladeiras", cod:"36", esc1:"EBDA - ESCOLA BÍBLICA DOMINICAL ANIMADA", esc2:"", esc3:""}
+        ],
+        domingoManha: [],
+        domingoNoite: [
+            {cong:"Templo Matriz", cod:"57", esc1:"Pr. Severino Guilhermino", esc2:"", esc3:""},
+            {cong:"Monte das Oliveiras", cod:"02", esc1:"Pb. Pedro José", esc2:"", esc3:""},
+            {cong:"Monte Carmelo", cod:"10", esc1:"Pb. Elias Alberto", esc2:"", esc3:""},
+            {cong:"Av. Brasil", cod:"02", esc1:"Pb. Gilcelio Felipe", esc2:"", esc3:""},
+            {cong:"Nova Canaã", cod:"09", esc1:"Pb. Edmilson Clemente", esc2:"", esc3:""},
+            {cong:"Itapipiré", cod:"07", esc1:"Pb. Amauri Pereira", esc2:"", esc3:""},
+            {cong:"Quinze", cod:"02", esc1:"Pb. Antônio Alexandre", esc2:"", esc3:""},
+            {cong:"Lot. Bom Jesus", cod:"02", esc1:"Pb. Marcos Henrique", esc2:"", esc3:""},
+            {cong:"Belo Oriente", cod:"02", esc1:"Pb. Ednaldo Antônio", esc2:"", esc3:""},
+            {cong:"Jardim Nova Esperança", cod:"02", esc1:"Dc. Nílson Carlos", esc2:"", esc3:""},
+            {cong:"Engenho Vinagre", cod:"02", esc1:"Dc. Antônio Neto", esc2:"", esc3:""},
+            {cong:"Três Ladeiras", cod:"02", esc1:"Dc. Murilo Henrique", esc2:"", esc3:""},
+            {cong:"Vila Canaã", cod:"02", esc1:"Dc. José Anísio", esc2:"", esc3:""},
+            {cong:"Caraú", cod:"02", esc1:"Aux. Genival Severino", esc2:"", esc3:""},
+            {cong:"Penedinho", cod:"02", esc1:"Dc. Rodrigo Siqueira", esc2:"", esc3:""},
+            {cong:"Chã do Conselho 01", cod:"10", esc1:"Pb. Leonardo Manoel", esc2:"", esc3:""},
+            {cong:"Chã do Conselho 02", cod:"02", esc1:"Dc. Samuel Amaro", esc2:"", esc3:""},
+            {cong:"Lot. Fontes de Aldeia", cod:"02", esc1:"Pb. Otoniel Luiz", esc2:"", esc3:""},
+            {cong:"Alto Planalto", cod:"02", esc1:"Dc. Zequias Alves", esc2:"", esc3:""},
+            {cong:"Itaboraí", cod:"10", esc1:"Pb. Rogério Brito", esc2:"", esc3:""}
+        ]
+    };
+
+    function preencherTabela(tabId, dados) {
+        const tbody = document.querySelector(`#${tabId} tbody`);
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        dados.forEach(item => {
+            const tr = document.createElement("tr");
+            const tdCong = document.createElement("td"); tdCong.className = "cong-nome"; tdCong.textContent = item.cong; tr.appendChild(tdCong);
+            const tdCod = document.createElement("td"); tdCod.className = "codigo"; tdCod.textContent = item.cod; tr.appendChild(tdCod);
+            const tdEsc = document.createElement("td"); tdEsc.className = "escalados-cell";
+            tdEsc.appendChild(criarSelectsEscalados(item.esc1, item.esc2, item.esc3));
+            tr.appendChild(tdEsc);
+            const tdBtn = document.createElement("td"); tdBtn.style.textAlign="center";
+            const btnRem = document.createElement("button"); btnRem.textContent = "🗑️"; btnRem.style.background="none"; btnRem.style.border="none"; btnRem.style.cursor="pointer";
+            btnRem.onclick = () => tr.remove();
+            tdBtn.appendChild(btnRem);
+            tr.appendChild(tdBtn);
+            tbody.appendChild(tr);
+        });
+    }
+
+    function adicionarLinha(dia) {
+        const tabId = `tab-${dia}`;
+        const tbody = document.querySelector(`#${tabId} tbody`);
+        if (!tbody) return;
+        const tr = document.createElement("tr");
+        const tdCong = document.createElement("td"); tdCong.className = "cong-nome";
+        const inputCong = document.createElement("input"); inputCong.placeholder = "Nova congregação"; inputCong.style.width="100%";
+        tdCong.appendChild(inputCong);
+        tr.appendChild(tdCong);
+        const tdCod = document.createElement("td"); tdCod.className = "codigo";
+        const inputCod = document.createElement("input"); inputCod.placeholder = "cód."; inputCod.style.width="60px";
+        tdCod.appendChild(inputCod);
+        tr.appendChild(tdCod);
+        const tdEsc = document.createElement("td"); tdEsc.className = "escalados-cell";
+        tdEsc.appendChild(criarSelectsEscalados("","",""));
+        tr.appendChild(tdEsc);
+        const tdBtn = document.createElement("td");
+        const btnRem = document.createElement("button"); btnRem.textContent = "🗑️"; btnRem.onclick = () => tr.remove();
+        tdBtn.appendChild(btnRem);
+        tr.appendChild(tdBtn);
+        tbody.appendChild(tr);
+    }
+
+    window.adicionarLinha = adicionarLinha;
+
+    // Atualizar datas
+    function atualizarDatas() {
+        const dataInicioStr = document.getElementById("dataInicio").value;
+        if (!dataInicioStr) return;
+        // FIX: parse como data local para evitar offset de fuso horário
+        const [ano, mes, dia] = dataInicioStr.split('-').map(Number);
+        const data = new Date(ano, mes - 1, dia);
+        const dias = ["segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingoManha", "domingoNoite"];
+        const nomes = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo", "Domingo"];
+        for (let i = 0; i < dias.length; i++) {
+            let dt = new Date(data);
+            dt.setDate(data.getDate() + i);
+            const dataStr = dt.toLocaleDateString('pt-BR');
+            const span = document.getElementById(`data-${dias[i]}`);
+            if (span) span.textContent = `${nomes[i]} ${dataStr}`;
+        }
+    }
+
+    // Preencher painel de códigos
+    const codigosLista = [
+        "01. ORAÇÃO","02. PREGAÇÃO","03. CEIA","04. DOUTRINA","05. ADMINISTRATIVO","06. ESTUDO MOCIDADE","07. ANIV. CAMP. EVANG.","08. EST. ÓRGÃO LOUVOR","09. ANIV. ÓRGÃO LOUVOR","10. CULTO MOCIDADE","11. ABERTURA FESTIV.","12. CULTO DA FAMÍLIA","13. MANHÃ MISIONÁRIA","14. CULTO EVANGELÍSTICO","15. ANIV. C. O.","16. ANIV. TEMPLO","17. CULTO DE MISSÕES","18. ESTUDO P/ CASAIS","19. ESTUDO P/ CRIANÇAS","20. ESTUDO P/ ADOLESCENTES","21. ENCONTRO DE JOVENS","22. SEMIN. P/ DISCIPULADO","23. SIMPÓSIO EVANGELÍSMO","24. PLANTÃO RÁDIO BOAS NOVAS","25. ANIV. UNIÃO ADOLESCENTES","26. EST.P/ PAIS ADOLESCENTES","27. APOIO CONGREGAÇÃO","28. BATISMO TEMPLO CENTRAL","29. PRÉ-CONGRESSO","30. CONFERÊNCIA MISSIONÁRIA","31. CONGRESSO MOCIDADE","32. CONGRESSO ADOLESCENTES","33. CONGRESSO MULHERES","34. LEITURA EM C. O.","35. AÇÃO DE GRAÇAS","36. ESCOLA ANIMADA","37. CRUZADA EVANGELÍSTICA","38. LEITURA ANIV. C. O.","39. LEITURA ANIV. TEMPLO","40. MINISTRO PLANTÃO T.C.","41. PRESBÍTERO RECEPCIONISTA T.C.","42. VIGÍLIA DE ANO","43. ANIV. CONJUNTO MUSICAL","44. ANIV. CORAL","45. SIMPÓSIO DE DOUTRINA","46. NOITE MISSIONÁRIA","47. CULTO FESTIVO","48. ESTUDO P/ PROFESSORES","49. REUN. EQ. APOIO CASAIS","50. ANIV. C. O. I.","51. CONFERÊNCIA EBD","52. ABERTURA ESCOLA BÍBLICA","53. EST. ESCOLA BÍBLICA","54. ENS. ESCOLA BÍBLICA","55. INAUG. ÓRGÃO LOUVOR","56. ESTUDO BIBLICO","57. CULTO PROATI","58. PALAVRA CULTO VESPERTINO","59. SEMINÁRIO PARA A FAMILIA","60. SECADEAP FAMILIA","61. PONTO DE PREGAÇÃO","62. CULTO DE VIGÍLIA","63. CULTO. CAMP. EVANGEL.","64. FORMATURA DISIPULADO","65. CULTO DO REENCONTRO","66. PROJEFÉRIAS","67. ORAÇÃO DA CAMPANHA","68. ENCONTRO DE CRIANÇAS","69. INAUGURAÇÃO DE TEMPLO","70. ANIV. DO PROATI","71. CULTO JOVEM","72. ENCONTRO DE COMISSÕES","73. ENC. CAMP. EVANGELIZADORAS","74. CULTO MATUTINO"
+    ];
+    const grid = document.getElementById("listaCodigos");
+    codigosLista.forEach(cod => {
+        const div = document.createElement("div"); div.className = "cod-item"; div.textContent = cod;
+        grid.appendChild(div);
+    });
+
+    // Inicializar tabelas
+    preencherTabela("tab-segunda", dadosFixos.segunda);
+    preencherTabela("tab-terca", dadosFixos.terca);
+    preencherTabela("tab-quarta", dadosFixos.quarta);
+    preencherTabela("tab-quinta", dadosFixos.quinta);
+    preencherTabela("tab-sexta", dadosFixos.sexta);
+    preencherTabela("tab-sabado", dadosFixos.sabado);
+    preencherTabela("tab-domingoManha", dadosFixos.domingoManha);
+    preencherTabela("tab-domingoNoite", dadosFixos.domingoNoite);
+
+    atualizarDatas();
+    document.getElementById("atualizarDatas").addEventListener("click", atualizarDatas);
+    document.getElementById("dataInicio").addEventListener("change", atualizarDatas);
+
+    function coletarEscala() {
+        const dias = ["segunda","terca","quarta","quinta","sexta","sabado","domingoManha","domingoNoite"];
+        const resultado = {};
+        dias.forEach(dia => {
+            const tbody = document.querySelector(`#tab-${dia} tbody`);
+            if (!tbody) return;
+            const linhas = [];
+            tbody.querySelectorAll("tr").forEach(tr => {
+                const tds = tr.cells;
+                if (tds.length >= 3) {
+                    const congregacao = tds[0].querySelector("input") ? tds[0].querySelector("input").value : tds[0].innerText;
+                    const codigo = tds[1].querySelector("input") ? tds[1].querySelector("input").value : tds[1].innerText;
+                    const selects = tds[2].querySelectorAll("select");
+                    const esc1 = selects[0]?.value || "";
+                    const esc2 = selects[1]?.value || "";
+                    const esc3 = selects[2]?.value || "";
+                    linhas.push({congregacao, codigo, escalados: [esc1, esc2, esc3].filter(v=>v)});
+                }
+            });
+            resultado[dia] = linhas;
+        });
+        return resultado;
+    }
+
+    document.getElementById("btnExportar").addEventListener("click", () => {
+        const escala = coletarEscala();
+        document.getElementById("outputArea").innerHTML = "<pre>" + JSON.stringify(escala, null, 2) + "</pre>";
+    });
+
+    // ── BANCO DE DADOS (localStorage) ────────────────────────────
+
+    const DB_PREFIX = "ieadpe_escala_";
+
+    function dbChave(semana) { return DB_PREFIX + semana; }
+
+    function dbListarSemanas() {
+        const semanas = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith(DB_PREFIX)) {
+                semanas.push(k.replace(DB_PREFIX, ""));
+            }
+        }
+        return semanas.sort().reverse();
+    }
+
+    function dbSalvar() {
+        const semana = document.getElementById("dataInicio").value;
+        if (!semana) { alert("Selecione uma data de início de semana antes de salvar."); return; }
+        const escala = coletarEscala();
+        const registro = { semana, escala, salvoEm: new Date().toLocaleString('pt-BR') };
+        localStorage.setItem(dbChave(semana), JSON.stringify(registro));
+        dbRenderizarLista();
+        mostrarToast(`✅ Semana ${formatarData(semana)} salva com sucesso!`);
+        document.getElementById("dbStatus").textContent = `Última gravação: ${registro.salvoEm}`;
+    }
+
+    function dbCarregar(semana) {
+        const raw = localStorage.getItem(dbChave(semana));
+        if (!raw) { alert("Dados não encontrados."); return; }
+        const registro = JSON.parse(raw);
+
+        if (!confirm(`Carregar a escala da semana de ${formatarData(semana)}?\nOs dados não salvos serão perdidos.`)) return;
+
+        // Setar a data
+        document.getElementById("dataInicio").value = semana;
+        atualizarDatas();
+
+        // Preencher tabelas
+        const dias = ["segunda","terca","quarta","quinta","sexta","sabado","domingoManha","domingoNoite"];
+        dias.forEach(dia => {
+            const dados = (registro.escala[dia] || []).map(item => ({
+                cong: item.congregacao || item.cong || "",
+                cod:  item.codigo     || item.cod  || "",
+                esc1: item.escalados?.[0] || item.esc1 || "",
+                esc2: item.escalados?.[1] || item.esc2 || "",
+                esc3: item.escalados?.[2] || item.esc3 || ""
+            }));
+            preencherTabela("tab-" + dia, dados);
+        });
+
+        dbRenderizarLista(semana);
+        document.getElementById("dbStatus").textContent = `Semana ${formatarData(semana)} carregada • Salvo em: ${registro.salvoEm}`;
+        mostrarToast(`📂 Semana ${formatarData(semana)} carregada!`);
+    }
+
+    function dbExcluir(semana, e) {
+        e.stopPropagation();
+        if (!confirm(`Excluir a escala da semana ${formatarData(semana)} do banco de dados?`)) return;
+        localStorage.removeItem(dbChave(semana));
+        dbRenderizarLista();
+        mostrarToast(`🗑️ Semana ${formatarData(semana)} excluída.`);
+    }
+
+    function dbNovaSemana() {
+        if (!confirm("Iniciar nova semana em branco?\nOs dados não salvos serão perdidos.")) return;
+        const dias = ["segunda","terca","quarta","quinta","sexta","sabado","domingoManha","domingoNoite"];
+        dias.forEach(dia => preencherTabela("tab-" + dia, []));
+        document.getElementById("dbStatus").textContent = "Nova semana em branco criada.";
+        mostrarToast("📋 Nova semana em branco!");
+    }
+
+    function dbRenderizarLista(selecionada = null) {
+        const container = document.getElementById("dbSemanasList");
+        container.innerHTML = "";
+        const semanas = dbListarSemanas();
+        if (semanas.length === 0) {
+            container.innerHTML = '<span style="color:#888;font-size:0.8rem;">Nenhuma semana salva ainda.</span>';
+            return;
+        }
+        semanas.forEach(sem => {
+            const tag = document.createElement("div");
+            tag.className = "semana-tag" + (sem === selecionada ? " ativa" : "");
+            tag.innerHTML = `📅 ${formatarData(sem)} <span class="del-tag" title="Excluir">✕</span>`;
+            tag.querySelector('.del-tag').addEventListener('click', (e) => dbExcluir(sem, e));
+            tag.addEventListener('click', () => dbCarregar(sem));
+            container.appendChild(tag);
+        });
+    }
+
+    function formatarData(iso) {
+        if (!iso) return "";
+        const [a, m, d] = iso.split('-');
+        return `${d}/${m}/${a}`;
+    }
+
+    function mostrarToast(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast-ok';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 2800);
+    }
+
+    // Inicializar lista de semanas salvas
+    dbRenderizarLista();
+
+</script>
+</body>
+</html>

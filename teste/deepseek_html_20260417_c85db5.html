@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IEADPE - Escala de Cultos + Calendário + Cadastros</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Calibri', sans-serif;
+            background: #eef3f9;
+            margin: 0;
+            padding: 20px;
+            color: #0a2a4a;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 24px 20px 30px 20px;
+            border-top: 6px solid #1a5fa0;
+        }
+        .data-semana {
+            background: #e6f0fa;
+            padding: 10px 15px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .abas {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #c5daf0;
+            flex-wrap: wrap;
+        }
+        .aba-btn {
+            background: #e6f0fa;
+            border: none;
+            padding: 10px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 30px 30px 0 0;
+            cursor: pointer;
+            color: #0d3d7a;
+        }
+        .aba-btn.ativa { background: #0d4a8a; color: white; }
+        .aba-conteudo { display: none; }
+        .aba-conteudo.ativa { display: block; }
+        .codigos-painel-topo {
+            background: #f5f9ff;
+            border-radius: 20px;
+            border: 1px solid #c5daf0;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+        }
+        .grid-codigos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 6px;
+            font-size: 0.7rem;
+        }
+        .cod-item {
+            background: white;
+            border-left: 3px solid #1a5fa0;
+            padding: 4px 6px;
+            border-radius: 8px;
+        }
+        .day-section {
+            margin-bottom: 35px;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid #c5daf0;
+            overflow-x: auto;
+        }
+        .day-title {
+            background: #0d4a8a;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-left: 8px solid #1a70b8;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .day-date {
+            font-size: 0.8rem;
+            background: #1a5a9a;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #e6f0fa;
+            color: #0d3d7a;
+            padding: 10px 5px;
+            border-bottom: 2px solid #a8c8e8;
+        }
+        td {
+            border: 1px solid #c5d8ef;
+            padding: 6px 4px;
+            vertical-align: middle;
+        }
+        .cong-nome { font-weight: 600; background-color: #f5f9ff; width: 30%; }
+        .codigo { text-align: center; width: 10%; font-weight: bold; color: #1a5fa0; background: #fff9e8; }
+        .escalados-cell { width: 55%; }
+        .escalados-cell select { width: 32%; margin: 0 1%; padding: 4px; border-radius: 8px; }
+        .btn-add-row {
+            background: #1a70b820;
+            border: 1px dashed #1a5fa0;
+            padding: 6px 12px;
+            margin: 8px 0;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .btn-salvar {
+            background: #0d4a8a;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .output {
+            background: #f5f9ff;
+            border: 1px solid #c0d8f0;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 30px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow: auto;
+        }
+        .config-painel {
+            background: #f0f6ff;
+            border: 2px solid #1a5fa0;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 22px;
+        }
+        .config-painel h3 {
+            background: #0d4a8a;
+            color: white;
+            margin: -16px -18px 14px -18px;
+            padding: 10px 16px;
+            border-radius: 14px 14px 0 0;
+            font-size: 0.97rem;
+        }
+        .config-linha {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .config-linha label { font-weight: bold; width: 180px; }
+        .config-linha input, .config-linha select { padding: 6px 12px; border-radius: 20px; border: 1px solid #a8c8e8; }
+        .regras-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .regras-tabela th, .regras-tabela td {
+            border: 1px solid #c5daf0;
+            padding: 8px;
+            text-align: center;
+        }
+        .btn-db {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.82rem;
+        }
+        .btn-db-salvar { background: #0d4a8a; color: white; }
+        .btn-db-novo { background: #2a8a2a; color: white; }
+        .btn-aplicar-regras { background: #e68a2e; color: white; }
+        .lista-regras {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .regra-item {
+            background: white;
+            border: 1px solid #c5daf0;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .regra-info { font-size: 0.85rem; }
+        .regra-botoes button {
+            margin-left: 8px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .toast-ok {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #0d4a8a; color: white; padding: 12px 28px;
+            border-radius: 30px; font-weight: bold; font-size: 0.9rem;
+            z-index: 9999;
+            animation: fadeInOut 2.5s ease forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .tipo-personalizado { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .lista-tipos { margin-top: 15px; }
+        .tipo-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 5px 10px; margin-bottom: 5px; border-radius: 30px; border: 1px solid #c5daf0; }
+        .db-semanas-lista { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .semana-tag { background: white; border: 1.5px solid #1a5fa0; border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .semana-tag .del-tag { color: #cc0000; cursor: pointer; }
+        .calendario-tabela, .obreiros-tabela, .congregacoes-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+        .calendario-tabela th, .obreiros-tabela th, .congregacoes-tabela th {
+            background: #0d4a8a;
+            color: white;
+            padding: 10px;
+        }
+        .calendario-tabela td, .obreiros-tabela td, .congregacoes-tabela td {
+            border: 1px solid #c5daf0;
+            padding: 8px;
+        }
+        .btn-editar, .btn-excluir {
+            padding: 4px 8px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+        .btn-editar { background: #1a5fa0; color: white; }
+        .btn-excluir { background: #cc3a1a; color: white; }
+        .form-inline { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="data-semana">
+        <label>📅 Semana de (segunda-feira):</label>
+        <input type="date" id="dataInicio" value="2026-04-20">
+        <button id="atualizarDatas" class="btn-add-row" style="background:#0d4a8a; color:white;">Atualizar Datas e Aplicar Regras</button>
+    </div>
+
+    <div class="abas">
+        <button class="aba-btn ativa" data-aba="escala">📆 Escala de Cultos</button>
+        <button class="aba-btn" data-aba="config">⚙️ Configurações</button>
+        <button class="aba-btn" data-aba="calendario">📅 Calendário 2026</button>
+        <button class="aba-btn" data-aba="obreiros">👥 Obreiros</button>
+        <button class="aba-btn" data-aba="congregacoes">🏘️ Congregações</button>
+    </div>
+
+    <!-- Escala -->
+    <div id="aba-escala" class="aba-conteudo ativa">
+        <div class="codigos-painel-topo"><h3>📋 CÓDIGOS DOS TRABALHOS</h3><div class="grid-codigos" id="listaCodigos"></div></div>
+        <div class="escalas-container" id="escalasContainer"></div>
+        <div style="text-align:center;"><button class="btn-salvar" id="btnExportar">📋 VISUALIZAR ESCALA COMPLETA (JSON)</button></div>
+        <div id="outputArea" class="output">⚡ Clique no botão para ver a escala gerada.</div>
+    </div>
+
+    <!-- Configurações (Tipos de Culto, Regras, Banco de Dados) -->
+    <div id="aba-config" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>🏷️ Tipos de Culto (Códigos)</h3>
+            <div class="tipo-personalizado">
+                <input type="text" id="novoTipoNome" placeholder="Nome (ex: Culto Jovem)" style="flex:2">
+                <input type="text" id="novoTipoCodigo" placeholder="Código (ex: 71)" style="width:80px">
+                <button id="btnAdicionarTipo" class="btn-db btn-db-salvar">Adicionar Tipo</button>
+            </div>
+            <div id="listaTiposCulto" class="lista-tipos"></div>
+            <div class="config-linha"><label>Padrão (dias de semana - código):</label><input type="text" id="cfg_padraoSemana" value="04" maxlength="2"></div>
+            <div class="config-linha"><label>Padrão (domingo - código):</label><input type="text" id="cfg_padraoDomingo" value="02" maxlength="2"></div>
+        </div>
+        <div class="config-painel">
+            <h3>📅 Regras de Culto por Congregação e Semana do Mês</h3>
+            <div class="config-linha">
+                <label>Congregação:</label>
+                <select id="selCongregacaoRegra"></select>
+                <label>Dia da semana:</label>
+                <select id="selDiaRegra">
+                    <option value="segunda">Segunda</option><option value="terca">Terça</option><option value="quarta">Quarta</option>
+                    <option value="quintaManha">Quinta Manhã</option><option value="quintaTarde">Quinta Tarde</option><option value="quintaNoite">Quinta Noite</option>
+                    <option value="sexta">Sexta</option><option value="sabado">Sábado</option>
+                    <option value="domingoManha">Domingo Manhã</option><option value="domingoNoite">Domingo Noite</option>
+                </select>
+                <button id="btnCarregarRegras" class="btn-add-row">Carregar regras</button>
+            </div>
+            <table class="regras-tabela">
+                <thead><tr><th>Tipo Padrão</th><th>1ª Semana</th><th>2ª Semana</th><th>3ª Semana</th><th>4ª Semana</th><th>5ª Semana</th></tr></thead>
+                <tbody><tr>
+                    <td><select id="regraPadrao"><option value="Normal">Normal</option></select></td>
+                    <td><select class="semanaSelect" data-semana="1"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="2"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="3"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="4"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="5"><option value="">(usar padrão)</option></select></td>
+                </tr></tbody>
+            </table>
+            <div style="margin-top: 10px;"><button id="btnSalvarRegras" class="btn-db btn-db-salvar">💾 Salvar regras para esta congregação/dia</button></div>
+            <div class="lista-regras" id="listaRegrasSalvas"></div>
+        </div>
+        <div class="config-painel">
+            <h3>🗄️ Banco de Dados de Escalas (Semanais)</h3>
+            <div class="db-acoes">
+                <button class="btn-db btn-db-salvar" onclick="dbSalvar()">💾 Salvar Semana Atual</button>
+                <button class="btn-db btn-db-novo" onclick="dbNovaSemana()">📋 Nova Semana em Branco</button>
+                <button class="btn-db btn-aplicar-regras" id="btnAplicarRegrasGerais">🔄 Aplicar regras à semana atual</button>
+            </div>
+            <div class="db-semanas-lista" id="dbSemanasList"></div>
+        </div>
+    </div>
+
+    <!-- Calendário editável -->
+    <div id="aba-calendario" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>📅 Calendário de Eventos - 2026</h3>
+            <div class="form-inline">
+                <input type="date" id="novaDataEvento" placeholder="Data">
+                <input type="text" id="novaDescEvento" placeholder="Descrição do evento">
+                <input type="text" id="novoCCEvento" placeholder="CC (código)" style="width:80px">
+                <select id="novaCongEvento"></select>
+                <button id="btnAdicionarEvento" class="btn-db btn-db-salvar">Adicionar Evento</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="calendario-tabela" id="tabelaCalendario">
+                    <thead><tr><th>Data</th><th>Descrição</th><th>CC</th><th>Congregação</th><th>Ações</th></tr></thead>
+                    <tbody id="corpoCalendario"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Obreiros -->
+    <div id="aba-obreiros" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>👥 Cadastro de Obreiros</h3>
+            <div class="form-inline">
+                <input type="text" id="novoNomeObreiro" placeholder="Nome completo" style="width:300px">
+                <select id="novoCargoObreiro">
+                    <option value="Pr.">Pr.</option><option value="Pb.">Pb.</option><option value="Dc.">Dc.</option>
+                    <option value="Aux.">Aux.</option><option value="Aux. Local.">Aux. Local.</option>
+                </select>
+                <select id="novaCongObreiro"></select>
+                <button id="btnAdicionarObreiro" class="btn-db btn-db-salvar">Adicionar Obreiro</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="obreiros-tabela" id="tabelaObreiros">
+                    <thead><tr><th>Nome</th><th>Cargo</th><th>Congregação</th><th>Ações</th></tr></thead>
+                    <tbody id="corpoObreiros"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Congregações -->
+    <div id="aba-congregacoes" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>🏘️ Lista de Congregações</h3>
+            <div class="form-inline">
+                <input type="text" id="novaCongregacao" placeholder="Nome da congregação" style="width:300px">
+                <button id="btnAdicionarCongregacao" class="btn-db btn-db-salvar">Adicionar Congregação</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="congregacoes-tabela" id="tabelaCongregacoes">
+                    <thead><tr><th>Nome</th><th>Ações</th></tr></thead>
+                    <tbody id="corpoCongregacoes"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer>Regras automáticas • Cadastros completos • Dados salvos no navegador.</footer>
+</div>
+
+<script>
+    // ========== LISTA DE OBREIROS (será gerenciada via localStorage) ==========
+    let obreiros = []; // { nome, cargo, congregacao }
+    let congregacoes = []; // lista de nomes
+    let eventos = []; // { data, descricao, cc, congregacao }
+
+    // ========== TIPOS DE CULTO DINÂMICOS ==========
+    let tiposCulto = [
+        { nome: "Santa Ceia", codigo: "03" },
+        { nome: "Administrativo", codigo: "05" },
+        { nome: "Mocidade", codigo: "10" },
+        { nome: "PROATI", codigo: "57" }
+    ];
+
+    // ========== REGRAS POR CONGREGAÇÃO ==========
+    let regrasCulto = {};
+
+    // ========== FUNÇÕES DE PERSISTÊNCIA ==========
+    function salvarTodosDados() {
+        localStorage.setItem("ieadpe_tipos_culto", JSON.stringify(tiposCulto));
+        localStorage.setItem("ieadpe_regras_culto", JSON.stringify(regrasCulto));
+        localStorage.setItem("ieadpe_obreiros", JSON.stringify(obreiros));
+        localStorage.setItem("ieadpe_congregacoes", JSON.stringify(congregacoes));
+        localStorage.setItem("ieadpe_eventos", JSON.stringify(eventos));
+    }
+    function carregarTodosDados() {
+        const savedTipos = localStorage.getItem("ieadpe_tipos_culto");
+        if (savedTipos) tiposCulto = JSON.parse(savedTipos);
+        const savedRegras = localStorage.getItem("ieadpe_regras_culto");
+        if (savedRegras) regrasCulto = JSON.parse(savedRegras);
+        const savedObreiros = localStorage.getItem("ieadpe_obreiros");
+        if (savedObreiros) obreiros = JSON.parse(savedObreiros);
+        else obreiros = [];
+        const savedCong = localStorage.getItem("ieadpe_congregacoes");
+        if (savedCong) congregacoes = JSON.parse(savedCong);
+        else congregacoes = ["Templo Matriz","Monte das Oliveiras","Monte Carmelo","Av. Brasil","Nova Canaã","Itapipiré","Quinze","Lot. Bom Jesus","Belo Oriente","Jardim Nova Esperança","Engenho Vinagre","Três Ladeiras","Vila Canaã","Caraú","Penedinho","Chã do Conselho 01","Chã do Conselho 02","Lot. Fontes de Aldeia","Alto Planalto","Itaboraí"];
+        const savedEventos = localStorage.getItem("ieadpe_eventos");
+        if (savedEventos) eventos = JSON.parse(savedEventos);
+        else eventos = [];
+    }
+
+    // ========== RENDERIZAÇÃO DAS LISTAS ==========
+    function renderizarListaTipos() {
+        const container = document.getElementById("listaTiposCulto");
+        container.innerHTML = "";
+        tiposCulto.forEach((tipo, idx) => {
+            const div = document.createElement("div"); div.className = "tipo-row";
+            div.innerHTML = `<span><strong>${tipo.nome}</strong> (código ${tipo.codigo})</span>
+                             <button class="btn-remover-tipo" data-idx="${idx}" style="background:#cc3a1a; color:white; border:none; border-radius:30px; padding:4px 12px;">Excluir</button>`;
+            container.appendChild(div);
+        });
+        document.querySelectorAll(".btn-remover-tipo").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const idx = parseInt(btn.getAttribute("data-idx"));
+                if (confirm(`Remover tipo "${tiposCulto[idx].nome}"?`)) {
+                    tiposCulto.splice(idx, 1);
+                    salvarTodosDados();
+                    renderizarListaTipos();
+                    atualizarSelectsTipos();
+                    mostrarToast("Tipo removido!");
+                }
+            });
+        });
+    }
+    function atualizarSelectsTipos() {
+        const opcoes = ["Normal", ...tiposCulto.map(t => t.nome)];
+        const selectsRegra = document.querySelectorAll("#regraPadrao, .semanaSelect");
+        selectsRegra.forEach(select => {
+            const valorAtual = select.value;
+            select.innerHTML = "";
+            const optVazio = document.createElement("option"); optVazio.value = ""; optVazio.textContent = "(usar padrão)";
+            if (select.id !== "regraPadrao") select.appendChild(optVazio);
+            opcoes.forEach(opt => {
+                const option = document.createElement("option");
+                option.value = opt;
+                option.textContent = opt;
+                if (opt === valorAtual) option.selected = true;
+                select.appendChild(option);
+            });
+        });
+    }
+    function obterCodigoDoTipo(tipoNome, isDomingo) {
+        if (tipoNome === "Normal") {
+            const cfgSemana = document.getElementById("cfg_padraoSemana")?.value || "04";
+            const cfgDomingo = document.getElementById("cfg_padraoDomingo")?.value || "02";
+            return isDomingo ? cfgDomingo : cfgSemana;
+        }
+        const tipo = tiposCulto.find(t => t.nome === tipoNome);
+        return tipo ? tipo.codigo : "00";
+    }
+
+    // ========== REGRAS ==========
+    function obterTipoPorRegra(congregacao, dia, numeroSemana) {
+        if (!regrasCulto[congregacao] || !regrasCulto[congregacao][dia]) return "Normal";
+        const reg = regrasCulto[congregacao][dia];
+        if (reg.excecoes && reg.excecoes[numeroSemana]) return reg.excecoes[numeroSemana];
+        return reg.padrao || "Normal";
+    }
+    function getSemanaNumero(data) {
+        const primeiroDiaMes = new Date(data.getFullYear(), data.getMonth(), 1);
+        const offset = (data.getDate() + primeiroDiaMes.getDay()) / 7;
+        return Math.ceil(offset);
+    }
+    function aplicarRegrasNaSemana() {
+        const dataInicioStr = document.getElementById("dataInicio").value;
+        if (!dataInicioStr) return;
+        const [ano, mes, dia] = dataInicioStr.split('-').map(Number);
+        const dataBase = new Date(ano, mes-1, dia);
+        const diasMap = {
+            "segunda":0, "terca":1, "quarta":2, "quintaManha":3, "quintaTarde":3, "quintaNoite":3,
+            "sexta":4, "sabado":5, "domingoManha":6, "domingoNoite":6
+        };
+        for (let [diaId, offset] of Object.entries(diasMap)) {
+            let dataDia = new Date(dataBase);
+            dataDia.setDate(dataBase.getDate() + offset);
+            const numSemana = getSemanaNumero(dataDia);
+            const tbody = document.querySelector(`#tab-${diaId} tbody`);
+            if (!tbody) continue;
+            tbody.querySelectorAll("tr").forEach(tr => {
+                let congregacao = tr.cells[0].querySelector("input") ? tr.cells[0].querySelector("input").value : tr.cells[0].innerText;
+                if (!congregacao || congregacao.trim() === "") return;
+                const isDomingo = (diaId === "domingoManha" || diaId === "domingoNoite");
+                const novoTipo = obterTipoPorRegra(congregacao.trim(), diaId, numSemana);
+                const codigo = obterCodigoDoTipo(novoTipo, isDomingo);
+                tr.cells[1].textContent = codigo;
+            });
+        }
+        mostrarToast("✅ Regras aplicadas à semana atual!");
+    }
+
+    function renderizarListaRegras() {
+        const container = document.getElementById("listaRegrasSalvas");
+        container.innerHTML = "<h4 style='margin:10px 0 5px'>Regras configuradas:</h4>";
+        let count = 0;
+        for (const [cong, dias] of Object.entries(regrasCulto)) {
+            for (const [dia, reg] of Object.entries(dias)) {
+                const excecoesStr = Object.entries(reg.excecoes || {}).map(([sem, tipo]) => `${sem}ª:${tipo}`).join(", ");
+                const div = document.createElement("div"); div.className = "regra-item";
+                div.innerHTML = `
+                    <div class="regra-info"><strong>${cong}</strong> - ${dia} | Padrão: ${reg.padrao} ${excecoesStr ? `| Exceções: ${excecoesStr}` : ""}</div>
+                    <div class="regra-botoes">
+                        <button class="editar-regra" data-cong="${cong}" data-dia="${dia}" style="background:#1a5fa0; color:white;">✏️ Editar</button>
+                        <button class="excluir-regra" data-cong="${cong}" data-dia="${dia}" style="background:#cc3a1a; color:white;">🗑️ Excluir</button>
+                    </div>
+                `;
+                container.appendChild(div);
+                count++;
+            }
+        }
+        if (count === 0) container.innerHTML += "<div style='color:#888'>Nenhuma regra personalizada salva.</div>";
+        document.querySelectorAll(".editar-regra").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const cong = btn.getAttribute("data-cong");
+                const dia = btn.getAttribute("data-dia");
+                document.getElementById("selCongregacaoRegra").value = cong;
+                document.getElementById("selDiaRegra").value = dia;
+                carregarRegrasParaEdicao();
+            });
+        });
+        document.querySelectorAll(".excluir-regra").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const cong = btn.getAttribute("data-cong");
+                const dia = btn.getAttribute("data-dia");
+                if (confirm(`Excluir regra para ${cong} - ${dia}?`)) {
+                    if (regrasCulto[cong] && regrasCulto[cong][dia]) {
+                        delete regrasCulto[cong][dia];
+                        if (Object.keys(regrasCulto[cong]).length === 0) delete regrasCulto[cong];
+                        salvarTodosDados();
+                        renderizarListaRegras();
+                        mostrarToast("Regra excluída!");
+                    }
+                }
+            });
+        });
+    }
+    function carregarRegrasParaEdicao() {
+        const congregacao = document.getElementById("selCongregacaoRegra").value;
+        const dia = document.getElementById("selDiaRegra").value;
+        if (!congregacao) return;
+        if (!regrasCulto[congregacao]) regrasCulto[congregacao] = {};
+        if (!regrasCulto[congregacao][dia]) regrasCulto[congregacao][dia] = { padrao: "Normal", excecoes: {} };
+        const reg = regrasCulto[congregacao][dia];
+        document.getElementById("regraPadrao").value = reg.padrao;
+        for (let i=1; i<=5; i++) {
+            const select = document.querySelector(`.semanaSelect[data-semana="${i}"]`);
+            if (select) select.value = reg.excecoes[i] || "";
+        }
+        const statusDiv = document.getElementById("statusRegrasMsg") || (() => { const d=document.createElement("div"); d.id="statusRegrasMsg"; d.style.marginTop="8px"; d.style.fontSize="0.8rem"; document.querySelector("#btnSalvarRegras").parentNode.appendChild(d); return d; })();
+        statusDiv.innerText = `Editando regra para ${congregacao} - ${dia}`;
+    }
+    function salvarRegras() {
+        const congregacao = document.getElementById("selCongregacaoRegra").value;
+        const dia = document.getElementById("selDiaRegra").value;
+        if (!congregacao) { alert("Selecione uma congregação."); return; }
+        if (!regrasCulto[congregacao]) regrasCulto[congregacao] = {};
+        const padrao = document.getElementById("regraPadrao").value;
+        const excecoes = {};
+        for (let i=1; i<=5; i++) {
+            const val = document.querySelector(`.semanaSelect[data-semana="${i}"]`).value;
+            if (val && val !== "") excecoes[i] = val;
+        }
+        regrasCulto[congregacao][dia] = { padrao, excecoes };
+        salvarTodosDados();
+        renderizarListaRegras();
+        mostrarToast(`Regras para ${congregacao} (${dia}) salvas!`);
+        document.getElementById("statusRegrasMsg")?.remove();
+    }
+
+    // ========== FUNÇÕES DAS TABELAS DE ESCALA ==========
+    function criarSelectsEscalados(valor1="", valor2="", valor3="") {
+        const container = document.createElement("div"); container.style.display = "flex"; container.style.gap = "4px"; container.style.flexWrap = "wrap";
+        const makeSelect = (valor) => {
+            const select = document.createElement("select");
+            select.appendChild(new Option("─", ""));
+            obreiros.forEach(ob => { const nomeCompleto = `${ob.cargo} ${ob.nome}`; select.appendChild(new Option(nomeCompleto, nomeCompleto)); if (nomeCompleto === valor) select.value = valor; });
+            select.style.flex = "1"; select.style.minWidth = "110px";
+            return select;
+        };
+        container.appendChild(makeSelect(valor1)); container.appendChild(makeSelect(valor2)); container.appendChild(makeSelect(valor3));
+        return container;
+    }
+    function criarLinha(item, diaId) {
+        const tr = document.createElement("tr");
+        const tdCong = document.createElement("td"); tdCong.className = "cong-nome";
+        if (item.editavel) {
+            const input = document.createElement("input"); input.placeholder = "Nova congregação"; input.style.width="100%"; input.value = item.cong || "";
+            input.addEventListener("change", () => { if (input.value.trim()) aplicarRegrasNaSemana(); });
+            tdCong.appendChild(input);
+        } else tdCong.textContent = item.cong || "";
+        tr.appendChild(tdCong);
+        const tdCod = document.createElement("td"); tdCod.className = "codigo"; tdCod.textContent = item.cod || "";
+        tr.appendChild(tdCod);
+        const tdEsc = document.createElement("td"); tdEsc.className = "escalados-cell";
+        tdEsc.appendChild(criarSelectsEscalados(item.esc1 || "", item.esc2 || "", item.esc3 || ""));
+        tr.appendChild(tdEsc);
+        const tdBtn = document.createElement("td"); tdBtn.style.textAlign="center";
+        const btnRem = document.createElement("button"); btnRem.textContent = "🗑️"; btnRem.style.background="none"; btnRem.style.border="none"; btnRem.style.cursor="pointer";
+        btnRem.onclick = () => tr.remove();
+        tdBtn.appendChild(btnRem);
+        tr.appendChild(tdBtn);
+        return tr;
+    }
+    function preencherTabela(tabId, dados, diaId) {
+        const tbody = document.querySelector(`#${tabId} tbody`);
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        dados.forEach(item => { const tr = criarLinha({...item, editavel: false}, diaId); tbody.appendChild(tr); });
+        aplicarRegrasNaSemana();
+    }
+    window.adicionarLinha = function(dia) {
+        const tabId = `tab-${dia}`;
+        const tbody = document.querySelector(`#${tabId} tbody`);
+        if (!tbody) return;
+        const tr = criarLinha({ cong: "", cod: "", esc1: "", esc2: "", esc3: "", editavel: true }, dia);
+        tbody.appendChild(tr);
+        const inputCong = tr.cells[0].querySelector("input");
+        if (inputCong) inputCong.addEventListener("change", () => aplicarRegrasNaSemana());
+    };
+
+    function atualizarDatas() {
+        const dataInicioStr = document.getElementById("dataInicio").value;
+        if (!dataInicioStr) return;
+        const [ano, mes, dia] = dataInicioStr.split('-').map(Number);
+        const data = new Date(ano, mes-1, dia);
+        const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+        const nomes = ["Segunda","Terça","Quarta","Quinta Manhã","Quinta Tarde","Quinta Noite","Sexta","Sábado","Domingo","Domingo"];
+        for (let i=0; i<dias.length; i++) {
+            let dt = new Date(data); dt.setDate(data.getDate() + (i<6 ? i : i-2));
+            const span = document.getElementById(`data-${dias[i]}`);
+            if (span) span.textContent = `${nomes[i]} ${dt.toLocaleDateString('pt-BR')}`;
+        }
+        aplicarRegrasNaSemana();
+    }
+
+    // Dados fixos das escalas (cada dia com suas congregações)
+    const dadosFixos = {
+        segunda: [
+            {cong:"Chã do Conselho 01", esc1:"Pb. Leonardo Manoel"},
+            {cong:"Monte das Oliveiras", esc1:"Pb. Pedro José"},
+            {cong:"Av. Brasil", esc1:"Pb. Gilcelio Felipe"},
+            {cong:"Engenho Vinagre", esc1:"Dc. José Anísio"},
+            {cong:"Penedinho", esc1:"Dc. Rodrigo Siqueira"}
+        ],
+        terca: [{cong:"Templo Matriz", esc1:"Pr. Severino Guilhermino"}],
+        quarta: [
+            {cong:"Templo Matriz", esc1:"Pb. Herivelton Marculino"},{cong:"Monte das Oliveiras", esc1:"Pb. Pedro José"},
+            {cong:"Monte Carmelo", esc1:"Pb. Elias Alberto"},{cong:"Av. Brasil", esc1:"Pb. Gilcelio Felipe"},
+            {cong:"Nova Canaã", esc1:"Pb. Edmilson Clemente"},{cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},
+            {cong:"Quinze", esc1:"Pb. Antônio Alexandre"},{cong:"Lot. Bom Jesus", esc1:"Pb. Marcos Henrique"},
+            {cong:"Belo Oriente", esc1:"Pb. Ednaldo Antônio"},{cong:"Jardim Nova Esperança", esc1:"Dc. Nílson Carlos"},
+            {cong:"Engenho Vinagre"},{cong:"Três Ladeiras", esc1:"Dc. Murilo Henrique"},
+            {cong:"Vila Canaã"},{cong:"Caraú", esc1:"Aux. Genival Severino"},
+            {cong:"Penedinho", esc1:"Dc. Rodrigo Siqueira"},{cong:"Chã do Conselho 01", esc1:"Dc. Marcos Cavalcante"},
+            {cong:"Chã do Conselho 02", esc1:"Pb. Leonardo Manoel"},{cong:"Lot. Fontes de Aldeia", esc1:"Pb. Otoniel Luiz"},
+            {cong:"Alto Planalto", esc1:"Dc. Zequias Alves"},{cong:"Itaboraí", esc1:"Pb. Rogério Brito"}
+        ],
+        quintaManha: [{cong:"Templo Matriz", esc1:"Pb. Ednaldo Antônio"}],
+        quintaTarde: [{cong:"Templo Matriz", esc1:"Pb. Ednaldo Antônio"}],
+        quintaNoite: [
+            {cong:"Quinze", esc1:"Pb. Antônio Alexandre"},{cong:"Três Ladeiras", esc1:"Dc. Murilo Henrique"},
+            {cong:"Belo Oriente", esc1:"Pb. Ednaldo Antônio"},{cong:"Nova Canaã", esc1:"Pb. Edmilson Clemente"},
+            {cong:"Lot. Fontes de Aldeia", esc1:"Pb. Otoniel Luiz"},{cong:"Lot. Bom Jesus", esc1:"Pb. Marcos Henrique"},
+            {cong:"Itaboraí", esc1:"Pb. Rogério Brito"}
+        ],
+        sexta: [
+            {cong:"Monte Carmelo", esc1:"Pb. Elias Alberto"},{cong:"Jardim Nova Esperança", esc1:"Dc. Nílson Carlos"},
+            {cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},{cong:"Alto Planalto", esc1:"Dc. Zequias Alves"},
+            {cong:"Vila Canaã", esc1:"Dc. José Anísio"},{cong:"Chã do Conselho 02", esc1:"Pb. Leonardo Manoel"}
+        ],
+        sabado: [{cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},{cong:"Três Ladeiras", esc1:"EBDA - ESCOLA BÍBLICA DOMINICAL ANIMADA"}],
+        domingoManha: [],
+        domingoNoite: [
+            {cong:"Templo Matriz", esc1:"Pr. Severino Guilhermino"},{cong:"Monte das Oliveiras", esc1:"Pb. Pedro José"},
+            {cong:"Monte Carmelo", esc1:"Pb. Elias Alberto"},{cong:"Av. Brasil", esc1:"Pb. Gilcelio Felipe"},
+            {cong:"Nova Canaã", esc1:"Pb. Edmilson Clemente"},{cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},
+            {cong:"Quinze", esc1:"Pb. Antônio Alexandre"},{cong:"Lot. Bom Jesus", esc1:"Pb. Marcos Henrique"},
+            {cong:"Belo Oriente", esc1:"Pb. Ednaldo Antônio"},{cong:"Jardim Nova Esperança", esc1:"Dc. Nílson Carlos"},
+            {cong:"Engenho Vinagre", esc1:"Dc. Antônio Neto"},{cong:"Três Ladeiras", esc1:"Dc. Murilo Henrique"},
+            {cong:"Vila Canaã", esc1:"Dc. José Anísio"},{cong:"Caraú", esc1:"Aux. Genival Severino"},
+            {cong:"Penedinho", esc1:"Dc. Rodrigo Siqueira"},{cong:"Chã do Conselho 01", esc1:"Pb. Leonardo Manoel"},
+            {cong:"Chã do Conselho 02", esc1:"Dc. Samuel Amaro"},{cong:"Lot. Fontes de Aldeia", esc1:"Pb. Otoniel Luiz"},
+            {cong:"Alto Planalto", esc1:"Dc. Zequias Alves"},{cong:"Itaboraí", esc1:"Pb. Rogério Brito"}
+        ]
+    };
+    function inicializarTodasTabelas() {
+        const container = document.getElementById("escalasContainer");
+        container.innerHTML = "";
+        const diasLista = [
+            { id: "segunda", titulo: "SEGUNDA-FEIRA - NOITE" },
+            { id: "terca", titulo: "TERÇA-FEIRA - NOITE" },
+            { id: "quarta", titulo: "QUARTA-FEIRA" },
+            { id: "quintaManha", titulo: "QUINTA-FEIRA - MANHÃ" },
+            { id: "quintaTarde", titulo: "QUINTA-FEIRA - TARDE" },
+            { id: "quintaNoite", titulo: "QUINTA-FEIRA - NOITE" },
+            { id: "sexta", titulo: "SEXTA-FEIRA - NOITE" },
+            { id: "sabado", titulo: "SÁBADO - NOITE" },
+            { id: "domingoManha", titulo: "DOMINGO - MANHÃ" },
+            { id: "domingoNoite", titulo: "DOMINGO - NOITE" }
+        ];
+        diasLista.forEach(dia => {
+            const section = document.createElement("div"); section.className = "day-section"; section.setAttribute("data-dia", dia.id);
+            const titleDiv = document.createElement("div"); titleDiv.className = "day-title";
+            titleDiv.innerHTML = `${dia.titulo} <span class="day-date" id="data-${dia.id}"></span>`;
+            section.appendChild(titleDiv);
+            const table = document.createElement("table"); table.id = `tab-${dia.id}`;
+            table.innerHTML = `<thead><tr><th>CONGREGAÇÃO</th><th>CÓDIGO</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody>`;
+            section.appendChild(table);
+            const btnDiv = document.createElement("div"); btnDiv.style.padding = "6px";
+            const btn = document.createElement("button"); btn.className = "btn-add-row"; btn.textContent = "+ Adicionar congregação"; btn.onclick = () => adicionarLinha(dia.id);
+            btnDiv.appendChild(btn);
+            section.appendChild(btnDiv);
+            container.appendChild(section);
+            if (dadosFixos[dia.id]) preencherTabela(`tab-${dia.id}`, dadosFixos[dia.id], dia.id);
+            else preencherTabela(`tab-${dia.id}`, [], dia.id);
+        });
+    }
+
+    // ========== CALENDÁRIO ==========
+    function renderizarCalendario() {
+        const tbody = document.getElementById("corpoCalendario");
+        tbody.innerHTML = "";
+        eventos.forEach((ev, idx) => {
+            const tr = document.createElement("tr");
+            const dataFormatada = new Date(ev.data).toLocaleDateString('pt-BR');
+            tr.innerHTML = `
+                <td>${dataFormatada}</td>
+                <td>${ev.descricao}</td>
+                <td>${ev.cc || ""}</td>
+                <td>${ev.congregacao}</td>
+                <td>
+                    <button class="btn-editar" data-idx="${idx}" data-tipo="evento">✏️ Editar</button>
+                    <button class="btn-excluir" data-idx="${idx}" data-tipo="evento">🗑️ Excluir</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='evento']").forEach(btn => {
+            btn.addEventListener("click", () => editarEvento(parseInt(btn.getAttribute("data-idx"))));
+        });
+        document.querySelectorAll(".btn-excluir[data-tipo='evento']").forEach(btn => {
+            btn.addEventListener("click", () => excluirEvento(parseInt(btn.getAttribute("data-idx"))));
+        });
+    }
+    function adicionarEvento() {
+        const data = document.getElementById("novaDataEvento").value;
+        const descricao = document.getElementById("novaDescEvento").value.trim();
+        const cc = document.getElementById("novoCCEvento").value.trim();
+        const congregacao = document.getElementById("novaCongEvento").value;
+        if (!data || !descricao) { alert("Preencha data e descrição."); return; }
+        eventos.push({ data, descricao, cc, congregacao });
+        salvarTodosDados();
+        renderizarCalendario();
+        mostrarToast("Evento adicionado!");
+        document.getElementById("novaDataEvento").value = "";
+        document.getElementById("novaDescEvento").value = "";
+        document.getElementById("novoCCEvento").value = "";
+    }
+    function editarEvento(idx) {
+        const ev = eventos[idx];
+        const novaData = prompt("Nova data (AAAA-MM-DD):", ev.data);
+        const novaDesc = prompt("Nova descrição:", ev.descricao);
+        const novoCC = prompt("Novo CC:", ev.cc);
+        const novaCong = prompt("Nova congregação:", ev.congregacao);
+        if (novaData) ev.data = novaData;
+        if (novaDesc) ev.descricao = novaDesc;
+        if (novoCC !== null) ev.cc = novoCC;
+        if (novaCong) ev.congregacao = novaCong;
+        salvarTodosDados();
+        renderizarCalendario();
+        mostrarToast("Evento atualizado!");
+    }
+    function excluirEvento(idx) {
+        if (confirm("Excluir este evento?")) {
+            eventos.splice(idx, 1);
+            salvarTodosDados();
+            renderizarCalendario();
+            mostrarToast("Evento excluído!");
+        }
+    }
+
+    // ========== OBREIROS ==========
+    function renderizarObreiros() {
+        const tbody = document.getElementById("corpoObreiros");
+        tbody.innerHTML = "";
+        obreiros.forEach((ob, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${ob.nome}</td>
+                <td>${ob.cargo}</td>
+                <td>${ob.congregacao}</td>
+                <td>
+                    <button class="btn-editar" data-idx="${idx}" data-tipo="obreiro">✏️ Editar</button>
+                    <button class="btn-excluir" data-idx="${idx}" data-tipo="obreiro">🗑️ Excluir</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='obreiro']").forEach(btn => {
+            btn.addEventListener("click", () => editarObreiro(parseInt(btn.getAttribute("data-idx"))));
+        });
+        document.querySelectorAll(".btn-excluir[data-tipo='obreiro']").forEach(btn => {
+            btn.addEventListener("click", () => excluirObreiro(parseInt(btn.getAttribute("data-idx"))));
+        });
+        // Atualiza selects de escalados
+        document.querySelectorAll(".escalados-cell select").forEach(select => {
+            const valorAtual = select.value;
+            select.innerHTML = '<option value="">─</option>';
+            obreiros.forEach(ob => { const nomeCompleto = `${ob.cargo} ${ob.nome}`; select.appendChild(new Option(nomeCompleto, nomeCompleto)); if (nomeCompleto === valorAtual) select.value = valorAtual; });
+        });
+    }
+    function adicionarObreiro() {
+        const nome = document.getElementById("novoNomeObreiro").value.trim();
+        const cargo = document.getElementById("novoCargoObreiro").value;
+        const congregacao = document.getElementById("novaCongObreiro").value;
+        if (!nome) { alert("Preencha o nome."); return; }
+        obreiros.push({ nome, cargo, congregacao });
+        salvarTodosDados();
+        renderizarObreiros();
+        mostrarToast("Obreiro adicionado!");
+        document.getElementById("novoNomeObreiro").value = "";
+    }
+    function editarObreiro(idx) {
+        const ob = obreiros[idx];
+        const novoNome = prompt("Novo nome:", ob.nome);
+        const novoCargo = prompt("Novo cargo (Pr./Pb./Dc./Aux./Aux. Local.):", ob.cargo);
+        const novaCong = prompt("Nova congregação:", ob.congregacao);
+        if (novoNome) ob.nome = novoNome;
+        if (novoCargo) ob.cargo = novoCargo;
+        if (novaCong) ob.congregacao = novaCong;
+        salvarTodosDados();
+        renderizarObreiros();
+        mostrarToast("Obreiro atualizado!");
+    }
+    function excluirObreiro(idx) {
+        if (confirm("Excluir este obreiro?")) {
+            obreiros.splice(idx, 1);
+            salvarTodosDados();
+            renderizarObreiros();
+            mostrarToast("Obreiro excluído!");
+        }
+    }
+
+    // ========== CONGREGAÇÕES ==========
+    function renderizarCongregacoes() {
+        const tbody = document.getElementById("corpoCongregacoes");
+        tbody.innerHTML = "";
+        congregacoes.forEach((cong, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${cong}</td>
+                <td>
+                    <button class="btn-editar" data-idx="${idx}" data-tipo="cong">✏️ Editar</button>
+                    <button class="btn-excluir" data-idx="${idx}" data-tipo="cong">🗑️ Excluir</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='cong']").forEach(btn => {
+            btn.addEventListener("click", () => editarCongregacao(parseInt(btn.getAttribute("data-idx"))));
+        });
+        document.querySelectorAll(".btn-excluir[data-tipo='cong']").forEach(btn => {
+            btn.addEventListener("click", () => excluirCongregacao(parseInt(btn.getAttribute("data-idx"))));
+        });
+        // Atualiza selects de congregações em todos os lugares
+        const selectsCong = document.querySelectorAll("#selCongregacaoRegra, #novaCongEvento, #novaCongObreiro");
+        selectsCong.forEach(select => {
+            const valorAtual = select.value;
+            select.innerHTML = "";
+            congregacoes.forEach(c => { const opt = document.createElement("option"); opt.value = c; opt.textContent = c; if (c === valorAtual) opt.selected = true; select.appendChild(opt); });
+        });
+    }
+    function adicionarCongregacao() {
+        const nome = document.getElementById("novaCongregacao").value.trim();
+        if (!nome) { alert("Preencha o nome."); return; }
+        if (congregacoes.includes(nome)) { alert("Congregação já existe."); return; }
+        congregacoes.push(nome);
+        salvarTodosDados();
+        renderizarCongregacoes();
+        mostrarToast("Congregação adicionada!");
+        document.getElementById("novaCongregacao").value = "";
+    }
+    function editarCongregacao(idx) {
+        const novoNome = prompt("Novo nome:", congregacoes[idx]);
+        if (novoNome && !congregacoes.includes(novoNome)) {
+            congregacoes[idx] = novoNome;
+            salvarTodosDados();
+            renderizarCongregacoes();
+            mostrarToast("Congregação atualizada!");
+        } else if (novoNome) alert("Nome já existe.");
+    }
+    function excluirCongregacao(idx) {
+        if (confirm("Excluir esta congregação?")) {
+            congregacoes.splice(idx, 1);
+            salvarTodosDados();
+            renderizarCongregacoes();
+            mostrarToast("Congregação excluída!");
+        }
+    }
+
+    // ========== BANCO DE DADOS DE ESCALAS ==========
+    const DB_PREFIX = "ieadpe_escala_";
+    function coletarEscala() {
+        const escala = {};
+        const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+        for (let dia of dias) {
+            const tbody = document.querySelector(`#tab-${dia} tbody`);
+            if (!tbody) continue;
+            escala[dia] = [];
+            tbody.querySelectorAll("tr").forEach(tr => {
+                const congregacao = tr.cells[0].querySelector("input") ? tr.cells[0].querySelector("input").value : tr.cells[0].innerText;
+                const codigo = tr.cells[1].innerText;
+                const escalados = Array.from(tr.cells[2].querySelectorAll("select")).map(s=>s.value).filter(v=>v);
+                escala[dia].push({ congregacao, codigo, escalados });
+            });
+        }
+        return escala;
+    }
+    function dbSalvar() {
+        const semana = document.getElementById("dataInicio").value;
+        if(!semana) return;
+        const escala = coletarEscala();
+        localStorage.setItem(DB_PREFIX+semana, JSON.stringify({semana, escala}));
+        mostrarToast("Semana salva");
+        dbRenderizarLista();
+    }
+    function dbNovaSemana() {
+        if(confirm("Nova semana em branco?")) {
+            const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+            for(let dia of dias) preencherTabela(`tab-${dia}`, [], dia);
+            mostrarToast("Nova semana em branco");
+        }
+    }
+    function dbCarregar(semana) {
+        const raw = localStorage.getItem(DB_PREFIX+semana);
+        if(!raw) return;
+        const reg = JSON.parse(raw);
+        document.getElementById("dataInicio").value = semana;
+        atualizarDatas();
+        for(let dia of Object.keys(reg.escala)){
+            const dados = reg.escala[dia].map(i=>({cong:i.congregacao, cod:i.codigo, esc1:i.escalados?.[0]||"", esc2:i.escalados?.[1]||"", esc3:i.escalados?.[2]||""}));
+            preencherTabela(`tab-${dia}`, dados, dia);
+        }
+        mostrarToast(`Semana ${semana} carregada`);
+    }
+    function dbRenderizarLista() {
+        const container = document.getElementById("dbSemanasList");
+        container.innerHTML = "";
+        const semanas = [];
+        for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i); if(k?.startsWith(DB_PREFIX)) semanas.push(k.replace(DB_PREFIX,""));}
+        semanas.sort().reverse();
+        if(semanas.length===0){container.innerHTML="<span>Nenhuma semana salva.</span>";return;}
+        semanas.forEach(sem=>{
+            const tag=document.createElement("div");tag.className="semana-tag";
+            tag.innerHTML=`📅 ${sem.split('-').reverse().join('/')} <span class="del-tag">✕</span>`;
+            tag.querySelector('.del-tag').addEventListener('click',(e)=>{e.stopPropagation();localStorage.removeItem(DB_PREFIX+sem);dbRenderizarLista();mostrarToast("Excluída");});
+            tag.addEventListener('click',()=>dbCarregar(sem));
+            container.appendChild(tag);
+        });
+    }
+
+    function mostrarToast(msg) { const t=document.createElement('div'); t.className='toast-ok'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
+
+    // ========== INICIALIZAÇÃO ==========
+    window.onload = () => {
+        carregarTodosDados();
+        renderizarListaTipos();
+        atualizarSelectsTipos();
+        renderizarListaRegras();
+        inicializarTodasTabelas();
+        atualizarDatas();
+        renderizarCalendario();
+        renderizarObreiros();
+        renderizarCongregacoes();
+        // Configurar eventos dos botões
+        document.getElementById("atualizarDatas").addEventListener("click", atualizarDatas);
+        document.getElementById("btnCarregarRegras").addEventListener("click", carregarRegrasParaEdicao);
+        document.getElementById("btnSalvarRegras").addEventListener("click", salvarRegras);
+        document.getElementById("btnAplicarRegrasGerais").addEventListener("click", aplicarRegrasNaSemana);
+        document.getElementById("btnAdicionarTipo").addEventListener("click", () => {
+            const nome = document.getElementById("novoTipoNome").value.trim();
+            const codigo = document.getElementById("novoTipoCodigo").value.trim();
+            if (!nome || !codigo) { alert("Preencha nome e código."); return; }
+            if (tiposCulto.some(t => t.nome === nome)) { alert("Tipo já existe."); return; }
+            tiposCulto.push({ nome, codigo });
+            salvarTodosDados();
+            renderizarListaTipos();
+            atualizarSelectsTipos();
+            document.getElementById("novoTipoNome").value = "";
+            document.getElementById("novoTipoCodigo").value = "";
+            mostrarToast(`Tipo "${nome}" adicionado!`);
+        });
+        document.getElementById("btnAdicionarEvento").addEventListener("click", adicionarEvento);
+        document.getElementById("btnAdicionarObreiro").addEventListener("click", adicionarObreiro);
+        document.getElementById("btnAdicionarCongregacao").addEventListener("click", adicionarCongregacao);
+        dbRenderizarLista();
+        // Códigos completos
+        const codigosCompletos = [
+            "01. ORAÇÃO","02. PREGAÇÃO","03. CEIA","04. DOUTRINA","05. ADMINISTRATIVO","06. ESTUDO MOCIDADE","07. ANIV. CAMP. EVANG.","08. EST. ÓRGÃO LOUVOR","09. ANIV. ÓRGÃO LOUVOR","10. CULTO MOCIDADE","11. ABERTURA FESTIV.","12. CULTO DA FAMÍLIA","13. MANHÃ MISIONÁRIA","14. CULTO EVANGELÍSTICO","15. ANIV. C. O.","16. ANIV. TEMPLO","17. CULTO DE MISSÕES","18. ESTUDO P/ CASAIS","19. ESTUDO P/ CRIANÇAS","20. ESTUDO P/ ADOLESCENTES","21. ENCONTRO DE JOVENS","22. SEMIN. P/ DISCIPULADO","23. SIMPÓSIO EVANGELÍSMO","24. PLANTÃO RÁDIO BOAS NOVAS","25. ANIV. UNIÃO ADOLESCENTES","26. EST.P/ PAIS ADOLESCENTES","27. APOIO CONGREGAÇÃO","28. BATISMO TEMPLO CENTRAL","29. PRÉ-CONGRESSO","30. CONFERÊNCIA MISSIONÁRIA","31. CONGRESSO MOCIDADE","32. CONGRESSO ADOLESCENTES","33. CONGRESSO MULHERES","34. LEITURA EM C. O.","35. AÇÃO DE GRAÇAS","36. ESCOLA ANIMADA","37. CRUZADA EVANGELÍSTICA","38. LEITURA ANIV. C. O.","39. LEITURA ANIV. TEMPLO","40. MINISTRO PLANTÃO T.C.","41. PRESBÍTERO RECEPCIONISTA T.C.","42. VIGÍLIA DE ANO","43. ANIV. CONJUNTO MUSICAL","44. ANIV. CORAL","45. SIMPÓSIO DE DOUTRINA","46. NOITE MISSIONÁRIA","47. CULTO FESTIVO","48. ESTUDO P/ PROFESSORES","49. REUN. EQ. APOIO CASAIS","50. ANIV. C. O. I.","51. CONFERÊNCIA EBD","52. ABERTURA ESCOLA BÍBLICA","53. EST. ESCOLA BÍBLICA","54. ENS. ESCOLA BÍBLICA","55. INAUG. ÓRGÃO LOUVOR","56. ESTUDO BIBLICO","57. CULTO PROATI","58. PALAVRA CULTO VESPERTINO","59. SEMINÁRIO PARA A FAMILIA","60. SECADEAP FAMILIA","61. PONTO DE PREGAÇÃO","62. CULTO DE VIGÍLIA","63. CULTO. CAMP. EVANGEL.","64. FORMATURA DISIPULADO","65. CULTO DO REENCONTRO","66. PROJEFÉRIAS","67. ORAÇÃO DA CAMPANHA","68. ENCONTRO DE CRIANÇAS","69. INAUGURAÇÃO DE TEMPLO","70. ANIV. DO PROATI","71. CULTO JOVEM","72. ENCONTRO DE COMISSÕES","73. ENC. CAMP. EVANGELIZADORAS","74. CULTO MATUTINO"
+        ];
+        const grid = document.getElementById("listaCodigos");
+        codigosCompletos.forEach(c=>{const div=document.createElement("div");div.className="cod-item";div.textContent=c;grid.appendChild(div);});
+        // Abas
+        document.querySelectorAll('.aba-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.aba-btn').forEach(b=>b.classList.remove('ativa'));document.querySelectorAll('.aba-conteudo').forEach(c=>c.classList.remove('ativa'));btn.classList.add('ativa');document.getElementById(`aba-${btn.getAttribute('data-aba')}`).classList.add('ativa');});});
+        document.getElementById("btnExportar").addEventListener("click", () => { const escala = coletarEscala(); document.getElementById("outputArea").innerHTML = "<pre>" + JSON.stringify(escala, null, 2) + "</pre>"; });
+    };
+</script>
+</body>
+</html>

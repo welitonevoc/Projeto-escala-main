@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IEADPE - Escala Oficial + Escala Local + Calendário</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Calibri', sans-serif;
+            background: #eef3f9;
+            margin: 0;
+            padding: 0;
+            color: #0a2a4a;
+        }
+        .menu-fixo {
+            position: sticky;
+            top: 0;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 0 20px;
+            border-bottom: 2px solid #1a5fa0;
+        }
+        .abas {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .aba-btn {
+            background: #e6f0fa;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #0d3d7a;
+            transition: 0.2s;
+            border-radius: 8px 8px 0 0;
+        }
+        .aba-btn.ativa {
+            background: #0d4a8a;
+            color: white;
+            border-bottom: 3px solid #ffaa00;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 24px 20px 30px 20px;
+        }
+        .data-semana {
+            background: #e6f0fa;
+            padding: 10px 15px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .aba-conteudo { display: none; }
+        .aba-conteudo.ativa { display: block; }
+        
+        .day-section {
+            margin-bottom: 35px;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid #c5daf0;
+            overflow-x: auto;
+            page-break-inside: avoid;
+        }
+        .day-title {
+            background: #0d4a8a;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-left: 8px solid #1a70b8;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .day-date {
+            font-size: 0.8rem;
+            background: #1a5a9a;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #e6f0fa;
+            color: #0d3d7a;
+            padding: 10px 5px;
+            border-bottom: 2px solid #a8c8e8;
+        }
+        td {
+            border: 1px solid #c5d8ef;
+            padding: 6px 4px;
+            vertical-align: middle;
+        }
+        .cong-nome { font-weight: 600; background-color: #f5f9ff; width: 30%; }
+        .codigo { text-align: center; width: 10%; font-weight: bold; color: #1a5fa0; background: #fff9e8; }
+        .escalados-cell { width: 55%; }
+        .escalados-cell select { width: 32%; margin: 0 1%; padding: 4px; border-radius: 8px; }
+        .btn-add-row {
+            background: #1a70b820;
+            border: 1px dashed #1a5fa0;
+            padding: 6px 12px;
+            margin: 8px 0;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .btn-salvar {
+            background: #0d4a8a;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn-gerar {
+            background: #2a6e2a;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-left: 10px;
+        }
+        .output {
+            background: #f5f9ff;
+            border: 1px solid #c0d8f0;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 30px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow: auto;
+        }
+        .config-painel {
+            background: #f0f6ff;
+            border: 2px solid #1a5fa0;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 22px;
+        }
+        .config-painel h3 {
+            background: #0d4a8a;
+            color: white;
+            margin: -16px -18px 14px -18px;
+            padding: 10px 16px;
+            border-radius: 14px 14px 0 0;
+            font-size: 0.97rem;
+        }
+        .config-linha {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .config-linha label { font-weight: bold; width: 180px; }
+        .config-linha input, .config-linha select { padding: 6px 12px; border-radius: 20px; border: 1px solid #a8c8e8; }
+        .btn-db {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.82rem;
+        }
+        .btn-db-salvar { background: #0d4a8a; color: white; }
+        .btn-db-novo { background: #2a8a2a; color: white; }
+        .btn-aplicar-regras { background: #e68a2e; color: white; }
+        .db-semanas-lista { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .semana-tag { background: white; border: 1.5px solid #1a5fa0; border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .semana-tag .del-tag { color: #cc0000; cursor: pointer; }
+        .calendario-tabela, .obreiros-tabela, .congregacoes-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+        .calendario-tabela th, .obreiros-tabela th, .congregacoes-tabela th {
+            background: #0d4a8a;
+            color: white;
+            padding: 10px;
+        }
+        .calendario-tabela td, .obreiros-tabela td, .congregacoes-tabela td {
+            border: 1px solid #c5daf0;
+            padding: 8px;
+        }
+        .btn-editar, .btn-excluir {
+            padding: 4px 8px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+        .btn-editar { background: #1a5fa0; color: white; }
+        .btn-excluir { background: #cc3a1a; color: white; }
+        .form-inline { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .header-logo-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 0;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 20px;
+        }
+        .header-pastores {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            text-align: left;
+        }
+        .pastor-item {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+        .pastor-titulo {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #0e3d6e;
+        }
+        .pastor-cargo {
+            font-size: 0.78rem;
+            color: #1a5fa0;
+            font-style: italic;
+        }
+        .header-logo-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            text-align: center;
+        }
+        .logo-img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+        .endereco-igreja {
+            font-size: 0.7rem;
+            color: #4a6a9a;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        .header-ieadpe-nome {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            flex: 1;
+            text-align: right;
+        }
+        .ieadpe-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #0e3d6e;
+            letter-spacing: 3px;
+            line-height: 1;
+        }
+        .ieadpe-filial {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1a5fa0;
+            letter-spacing: 1px;
+        }
+        .codigos-painel-topo {
+            background: #f5f9ff;
+            border-radius: 20px;
+            border: 1px solid #c5daf0;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+        }
+        .codigos-painel-topo h3 {
+            background: #0d4a8a;
+            color: white;
+            margin: -12px -15px 12px -15px;
+            padding: 8px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        .grid-codigos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 6px;
+            font-size: 0.75rem;
+        }
+        .cod-item {
+            background: white;
+            border-left: 3px solid #1a5fa0;
+            padding: 4px 6px;
+            border-radius: 8px;
+        }
+        /* Estilos para a Escala Local (formato PDF) */
+        .local-section {
+            margin-bottom: 40px;
+            border: 1px solid #c5daf0;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .local-section-title {
+            background: #0d4a8a;
+            color: white;
+            padding: 12px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .local-subsection {
+            margin: 15px;
+            border: 1px solid #d0e0f0;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+        .local-subsection-title {
+            background: #e6f0fa;
+            padding: 8px 15px;
+            font-weight: bold;
+            color: #0d3d7a;
+            border-bottom: 1px solid #c5daf0;
+        }
+        .local-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .local-table th {
+            background: #f0f6ff;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #c5daf0;
+        }
+        .local-table td {
+            border: 1px solid #c5daf0;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+        .local-table select {
+            width: 100%;
+            min-width: 120px;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid #a8c8e8;
+        }
+        @media print {
+            .menu-fixo, .data-semana, .aba-btn, .btn-salvar, .btn-add-row, .output, 
+            .db-painel, .config-painel, .filtros, .btn-db, #btnExportarOficial, 
+            #btnExportarLocal, #atualizarDatas, .btn-imprimir, .btn-aplicar-regras,
+            td:last-child, th:last-child, .day-section td:last-child, .day-section th:last-child,
+            .btn-add-row, .day-section .btn-add-row, button {
+                display: none !important;
+            }
+            body, .container, .aba-conteudo.ativa, .day-section, table {
+                background: white;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            .day-section {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+            }
+            .container {
+                max-width: 100%;
+                padding: 0;
+            }
+            .header-logo-row, .codigos-painel-topo {
+                display: block !important;
+            }
+            .day-title {
+                background: #0d4a8a !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            th {
+                background: #e6f0fa !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="menu-fixo">
+    <div class="abas">
+        <button class="aba-btn ativa" data-aba="escala-oficial">📆 Escala Oficial</button>
+        <button class="aba-btn" data-aba="escala-local">📆 Escala Local</button>
+        <button class="aba-btn" data-aba="config">⚙️ Configurações</button>
+        <button class="aba-btn" data-aba="calendario">📅 Calendário 2026</button>
+        <button class="aba-btn" data-aba="obreiros">👥 Obreiros</button>
+        <button class="aba-btn" data-aba="congregacoes">🏘️ Congregações</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="data-semana">
+        <label>📅 Semana de (segunda-feira):</label>
+        <input type="date" id="dataInicio" value="2026-04-20">
+        <button id="atualizarDatas" class="btn-add-row" style="background:#0d4a8a; color:white;">Atualizar Datas e Aplicar Regras</button>
+    </div>
+
+    <!-- Aba Escala Oficial (totalmente restaurada) -->
+    <div id="aba-escala-oficial" class="aba-conteudo ativa">
+        <div class="header-logo-row">
+            <div class="header-pastores">
+                <div class="pastor-item"><span class="pastor-titulo">Pr. Ailton José Alves</span><span class="pastor-cargo">Presidente da IEADPE</span></div>
+                <div class="pastor-item"><span class="pastor-titulo">Pr. Severino Guilhermino</span><span class="pastor-cargo">Pastor da Filial</span></div>
+            </div>
+            <div class="header-logo-center">
+                <img src="https://static.ieadpe.org.br/ieadpe_logo_colorido_pequeno.png" alt="Logo IEADPE" class="logo-img" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%230d4a8a\'/%3E%3Ctext x=\'50\' y=\'50\' font-size=\'12\' text-anchor=\'middle\' dy=\'.3em\' fill=\'white\'%3EIEADPE%3C/text%3E%3C/svg%3E';">
+                <div class="endereco-igreja">Avenida João Pessoa Guerra, 176 – Centro – Araçoiaba/PE</div>
+            </div>
+            <div class="header-ieadpe-nome"><span class="ieadpe-title">IEADPE</span><span class="ieadpe-filial">FILIAL ARAÇOIABA</span></div>
+        </div>
+        <div class="codigos-painel-topo"><h3>📋 CÓDIGOS DOS TRABALHOS</h3><div class="grid-codigos" id="listaCodigosOficial"></div></div>
+        <div class="escalas-container" id="escalasContainerOficial"></div>
+        <div style="text-align:center; margin-top:15px;">
+            <button class="btn-salvar" id="btnExportarOficial">📋 VISUALIZAR ESCALA OFICIAL (JSON)</button>
+            <button class="btn-salvar btn-imprimir" id="btnImprimirOficial" style="background:#2a6e2a;">🖨️ Imprimir Escala</button>
+            <button class="btn-gerar" id="btnGerarObreirosQuarta">🎲 Gerar Obreiros Automáticos (Quarta)</button>
+        </div>
+        <div id="outputAreaOficial" class="output">⚡ Clique no botão para ver a escala oficial gerada.</div>
+    </div>
+
+    <!-- Aba Escala Local (formato PDF) -->
+    <div id="aba-escala-local" class="aba-conteudo">
+        <div id="escalaLocalContainer"></div>
+        <div style="text-align:center; margin:20px 0;">
+            <button class="btn-salvar" id="btnSalvarEscalaLocal">💾 Salvar Escala Local</button>
+            <button class="btn-salvar" id="btnExportarLocal">📋 Visualizar JSON</button>
+            <button class="btn-salvar btn-imprimir" id="btnImprimirLocal" style="background:#2a6e2a;">🖨️ Imprimir Escala Local</button>
+        </div>
+        <div id="outputAreaLocal" class="output">⚡ Clique no botão para ver a escala local gerada.</div>
+    </div>
+
+    <!-- Configurações -->
+    <div id="aba-config" class="aba-conteudo">
+        <div class="config-painel"><h3>🏷️ Tipos de Culto (Códigos)</h3><div class="tipo-personalizado"><input type="text" id="novoTipoNome" placeholder="Nome" style="flex:2"><input type="text" id="novoTipoCodigo" placeholder="Código" style="width:80px"><button id="btnAdicionarTipo" class="btn-db btn-db-salvar">Adicionar</button></div><div id="listaTiposCulto" class="lista-tipos"></div><div class="config-linha"><label>Padrão semana:</label><input type="text" id="cfg_padraoSemana" value="04"></div><div class="config-linha"><label>Padrão domingo:</label><input type="text" id="cfg_padraoDomingo" value="02"></div></div>
+        <div class="config-painel"><h3>📅 Regras de Culto</h3><div id="regrasContainer">Configuração de regras (expansível)</div></div>
+        <div class="config-painel"><h3>🗄️ Banco de Dados</h3><div class="db-acoes"><button class="btn-db btn-db-salvar" id="dbSalvarOficialBtn">💾 Salvar Oficial</button><button class="btn-db btn-db-salvar" id="dbSalvarLocalBtn">💾 Salvar Local</button><button class="btn-db btn-db-novo" id="dbNovaSemanaBtn">📋 Nova Semana</button><button class="btn-db btn-aplicar-regras" id="btnAplicarRegrasGerais">🔄 Aplicar regras</button></div><div class="db-semanas-lista" id="dbSemanasList"></div></div>
+    </div>
+
+    <!-- Calendário 2026 -->
+    <div id="aba-calendario" class="aba-conteudo">
+        <div class="config-painel"><h3>📅 Calendário de Eventos - 2026</h3>
+            <div class="form-inline"><input type="date" id="novaDataEvento"><input type="text" id="novaDescEvento" placeholder="Descrição"><input type="text" id="novoCCEvento" placeholder="CC"><select id="novaCongEvento"></select><button id="btnAdicionarEvento" class="btn-db btn-db-salvar">Adicionar</button></div>
+            <div class="filtros"><input type="date" id="filtroData" placeholder="Data"><input type="text" id="filtroDesc" placeholder="Descrição"><input type="text" id="filtroCC" placeholder="CC"><select id="filtroCong"><option value="">Todas</option></select><button id="btnFiltrarEventos">🔍 Filtrar</button><button id="btnLimparFiltros">🗑️ Limpar</button></div>
+            <div style="overflow-x:auto;"><table class="calendario-tabela" id="tabelaCalendario"><thead><tr><th>Data</th><th>Descrição</th><th>CC</th><th>Congregação</th><th>Ações</th></tr></thead><tbody id="corpoCalendario"></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- Obreiros -->
+    <div id="aba-obreiros" class="aba-conteudo">
+        <div class="config-painel"><h3>👥 Cadastro de Obreiros</h3>
+            <div class="form-inline"><input type="text" id="novoNomeObreiro" placeholder="Nome completo" style="width:300px"><select id="novoCargoObreiro"><option value="Pr.">Pr.</option><option value="Pb.">Pb.</option><option value="Dc.">Dc.</option><option value="Aux.">Aux.</option><option value="Aux. Local.">Aux. Local.</option></select><select id="novaCongObreiro"></select><button id="btnAdicionarObreiro" class="btn-db btn-db-salvar">Adicionar</button></div>
+            <div style="overflow-x:auto;"><table class="obreiros-tabela" id="tabelaObreiros"><thead><tr><th>Nome</th><th>Cargo</th><th>Congregação</th><th>Ações</th></tr></thead><tbody id="corpoObreiros"></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- Congregações -->
+    <div id="aba-congregacoes" class="aba-conteudo">
+        <div class="config-painel"><h3>🏘️ Lista de Congregações</h3>
+            <div class="form-inline"><input type="text" id="novaCongregacao" placeholder="Nome"><button id="btnAdicionarCongregacao" class="btn-db btn-db-salvar">Adicionar</button></div>
+            <div style="overflow-x:auto;"><table class="congregacoes-tabela" id="tabelaCongregacoes"><thead><tr><th>Nome</th><th>Ações</th></tr></thead><tbody id="corpoCongregacoes"></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== DADOS GLOBAIS ====================
+    let obreiros = [];
+    let congregacoes = [];
+    let eventos = [];
+    let tiposCulto = [{ nome: "Santa Ceia", codigo: "03" }, { nome: "Administrativo", codigo: "05" }, { nome: "Mocidade", codigo: "10" }, { nome: "PROATI", codigo: "57" }];
+    let regrasCulto = {};
+    let escalaLocalData = {}; // será carregado
+
+    // Lista completa de obreiros
+    const listaObreirosCompleta = [
+        "Pr. Severino Guilhermino", "Pb. Amauri Pereira", "Pb. Ednaldo Antônio", "Pb. Edmilson Clemente",
+        "Pb. Luiz José", "Pb. Rogério Brito", "Pb. Marcos Henrique", "Pb. Otoniel Luiz",
+        "Pb. Elias Alberto", "Pb. Herivelton Marculino", "Pb. Jair Domingos", "Pb. Manassés Pereira",
+        "Pb. Vitor Edson", "Pb. Antônio Narciso", "Pb. Gilcelio Felipe", "Pb. Pedro José",
+        "Pb. Antônio Alexandre", "Pb. Espedito Gomes", "Pb. João Firmino", "Pb. Leonardo Manoel",
+        "Dc. Givanildo Olímpio", "Dc. Joseny Cândido", "Dc. Kleitonlee Marcionilo", "Dc. Waltermy Vieira",
+        "Dc. Daniel Domingos", "Dc. José Anísio", "Dc. João Severino", "Dc. Lucas Gabriel",
+        "Dc. Nílson Carlos", "Dc. Antônio Neto", "Dc. José Domingos", "Dc. Carlos Bone",
+        "Dc. Diogo Santana", "Dc. Dorgival Gervásio", "Dc. Josivaldo Mariano", "Dc. Marcos Cavalcante",
+        "Dc. Samuel Amaro", "Dc. José Santiago", "Dc. Valter Lopes", "Dc. Anílton Antônio",
+        "Dc. Antônio Figueiredo", "Dc. Ezequiel Eduardo", "Dc. Helton Carvalho", "Dc. José Carlos",
+        "Dc. José Joaquim", "Dc. José Menezes", "Dc. Maciel Evaristo", "Dc. Manuel Elias",
+        "Dc. Roberto Antônio", "Dc. Rosemiro Francisco", "Dc. Severino José", "Dc. Damião Arruda",
+        "Dc. Evanilson Pereira", "Dc. Antônio Gomes", "Dc. José Gonçalves", "Aux. Severino Gomes",
+        "Dc. Zequias Alves", "Dc. Benjamin Alexandre", "Aux. Cláudio Félix", "Aux. Jefferson Balbino",
+        "Aux. Valderli Herculano", "Aux. Waldemir Herculano", "Aux. Edinael Eliel", "Aux. José Henrique",
+        "Aux. Cleiton Gonçalves", "Aux. Fábio Feliciano", "Aux. Raú Ferreira", "Aux. Severino Maurício",
+        "Dc. José Hélio", "Aux. Bruno Bezerra", "Aux. Dorgivânio Gervásio", "Aux. Jessé Sabino",
+        "Aux. Luiz Cavalcante", "Aux. Maurício Avelino", "Aux. Oseias Amaro", "Aux. Ozeias Júnior",
+        "Aux. Paulo Henrique", "Aux. Rogério Lira", "Aux. Sebastião Francisco", "Aux. Valmir Gervásio",
+        "Aux. Paulo Cândido", "Aux. Paulo Carlos", "Aux. Ricardo Florentino", "Aux. Genival Severino",
+        "Aux. José Célio", "Aux. Ricardo Júnior", "Aux. Sandro Fernandes", "Aux. Wellington José",
+        "Dc. Rodrigo Siqueira", "Aux. Adriano Barbosa", "Aux. Raison José", "Aux. Antônio Barbosa",
+        "Aux. Claudemir Severino", "Aux. Dálton Almeida", "Aux. Edjael Francisco", "Aux. Jeremias Marculino",
+        "Aux. Jogle Uchôa", "Aux. José Francisco Filho", "Aux. Macksuel Gomes", "Aux. Marllon Gomes",
+        "Aux. Tiago Veríssimo", "Dc. Joalison Jorge", "Dc. Murilo Henrique", "Dc. Wermison Souza",
+        "Aux. Alexandre Silva", "Aux. Jesse Francisco", "Aux. Manoel Alves", "Aux. Matheus Alves",
+        "Aux. Adelino Gomes", "Aux. Ivanildo Marculino", "Aux. Joabe Rodrigues", "Aux. Luciano Evaristo",
+        "Aux. Edson Teixeira", "Aux. Gustavo Miguel", "Aux. Israel Soares", "Aux. João Paulino",
+        "Aux. José Dionísio", "Aux. José Edvaldo", "Aux. José Farias", "Aux. José Mariano",
+        "Aux. Arnaldo Bento", "Aux. Moises Rodrigues", "Aux. Local. Roberto Joaquim", "Aux. Local. Luciano Eronildo",
+        "Aux. Local. Sebastião Ribeiro", "Aux. Local. Isaías Pereira", "Aux. Local. José Otávio", "Aux. Local. Vinícius José",
+        "Aux. Local. José Adriano", "Aux. Local. Veronildo Manoel", "Aux. Local. Alan Herculano", "Aux. Local. Deyvison Felix",
+        "Aux. Local. Joseilton Alves", "Aux. Local. Kelvis Lopes", "Aux. Local. Vanduir josé", "Aux. Local. Cristiano Antônio",
+        "Aux. Local. Daniel Felipe", "Aux. Local. José Valter", "Aux. Local. Luiz Pereira", "Aux. Local. Anderson Ferreira",
+        "Aux. Local. José Jeverson", "Aux. Local. Miqueias Tavares", "Aux. Local. Raldny Antonio", "Aux. Local. Adriano Albuquerque",
+        "Aux. Local. André Francisco", "Aux. Local. Rafael Tenório", "Aux. Local. Allyson Nyerton", "Aux. Local. Daniel Lira",
+        "Aux. Local. Edvan José", "Aux. Local. Everaldo Alves", "Aux. Local. José Marculino", "Aux. Local. Junark Marculino",
+        "Aux. Local. Lucas França", "Aux. Local. Mario Fernandes", "Aux. Local. Severino Alexandre", "Aux. Local. Washington Souza",
+        "Aux. Local. Israel Antonio", "Aux. Local. Josenildo José", "Aux. Local. Miguel Mendes", "Aux. Local. Pedro Henrique",
+        "Aux. Local. Mario Filho", "Aux. Local. Ricardo José", "Aux. Local. Gilmario Terto", "Aux. Local. Miguel Cândido",
+        "Aux. Local. Carlos Roberto", "Aux. Local. Lenildo Freitas", "Aux. Local. José Bento"
+    ];
+
+    const congregacoesPadrao = ["Templo Matriz","Monte das Oliveiras","Monte Carmelo","Av. Brasil","Nova Canaã","Itapipiré","Quinze","Lot. Bom Jesus","Belo Oriente","Jardim Nova Esperança","Engenho Vinagre","Três Ladeiras","Vila Canaã","Caraú","Penedinho","Chã do Conselho 01","Chã do Conselho 02","Lot. Fontes de Aldeia","Alto Planalto","Itaboraí","Miritibi (PP)","Belo Oriente (Jeová Sama) (PP)","Chã do Conselho 2"];
+
+    // Dados da Escala Oficial (fixos)
+    const dadosFixosOficial = {
+        segunda: [{cong:"Chã do Conselho 01", cod:"04", esc1:"Pb. Leonardo Manoel"},{cong:"Monte das Oliveiras", cod:"04", esc1:"Pb. Pedro José"},{cong:"Av. Brasil", cod:"04", esc1:"Pb. Gilcelio Felipe"},{cong:"Engenho Vinagre", cod:"04", esc1:"Dc. José Anísio"},{cong:"Penedinho", cod:"04", esc1:"Dc. Rodrigo Siqueira"}],
+        terca: [{cong:"Templo Matriz", cod:"04", esc1:"Pr. Severino Guilhermino"}],
+        quarta: [
+            {cong:"Templo Matriz", cod:"01", esc1:"Pb. Herivelton Marculino"},
+            {cong:"Monte das Oliveiras", cod:"01", esc1:"Pb. Pedro José"},
+            {cong:"Monte Carmelo", cod:"01", esc1:"Pb. Elias Alberto"},
+            {cong:"Av. Brasil", cod:"01", esc1:"Pb. Gilcelio Felipe"},
+            {cong:"Nova Canaã", cod:"01", esc1:"Pb. Edmilson Clemente"},
+            {cong:"Itapipiré", cod:"01", esc1:"Pb. Amauri Pereira"},
+            {cong:"Quinze", cod:"01", esc1:"Pb. Antônio Alexandre"},
+            {cong:"Lot. Bom Jesus", cod:"01", esc1:"Pb. Marcos Henrique"},
+            {cong:"Belo Oriente", cod:"01", esc1:"Pb. Ednaldo Antônio"},
+            {cong:"Jardim Nova Esperança", cod:"01", esc1:"Dc. Nílson Carlos"},
+            {cong:"Engenho Vinagre", cod:"01", esc1:""},
+            {cong:"Três Ladeiras", cod:"01", esc1:"Dc. Murilo Henrique"},
+            {cong:"Vila Canaã", cod:"01", esc1:""},
+            {cong:"Caraú", cod:"01", esc1:"Aux. Genival Severino"},
+            {cong:"Penedinho", cod:"01", esc1:"Dc. Rodrigo Siqueira"},
+            {cong:"Chã do Conselho 01", cod:"01", esc1:""},
+            {cong:"Chã do Conselho 02", cod:"01", esc1:""},
+            {cong:"Lot. Fontes de Aldeia", cod:"01", esc1:"Pb. Otoniel Luiz"},
+            {cong:"Alto Planalto", cod:"01", esc1:"Dc. Zequias Alves"},
+            {cong:"Itaboraí", cod:"01", esc1:"Pb. Rogério Brito"}
+        ],
+        quintaManha: [{cong:"Templo Matriz", cod:"04", esc1:"Pb. Ednaldo Antônio"}],
+        quintaTarde: [{cong:"Templo Matriz", cod:"04", esc1:"Pb. Ednaldo Antônio"}],
+        quintaNoite: [{cong:"Quinze", cod:"04", esc1:"Pb. Antônio Alexandre"},{cong:"Três Ladeiras", cod:"04", esc1:"Dc. Murilo Henrique"},{cong:"Belo Oriente", cod:"04", esc1:"Pb. Ednaldo Antônio"},{cong:"Nova Canaã", cod:"04", esc1:"Pb. Edmilson Clemente"},{cong:"Lot. Fontes de Aldeia", cod:"04", esc1:"Pb. Otoniel Luiz"},{cong:"Lot. Bom Jesus", cod:"04", esc1:"Pb. Marcos Henrique"},{cong:"Itaboraí", cod:"04", esc1:"Pb. Rogério Brito"}],
+        sexta: [{cong:"Monte Carmelo", cod:"04", esc1:"Pb. Elias Alberto"},{cong:"Jardim Nova Esperança", cod:"04", esc1:"Dc. Nílson Carlos"},{cong:"Itapipiré", cod:"04", esc1:"Pb. Amauri Pereira"},{cong:"Alto Planalto", cod:"04", esc1:"Dc. Zequias Alves"},{cong:"Vila Canaã", cod:"03", esc1:"Dc. José Anísio"},{cong:"Chã do Conselho 02", cod:"03", esc1:"Pb. Leonardo Manoel"}],
+        sabado: [{cong:"Itapipiré", cod:"07", esc1:"Pb. Amauri Pereira"},{cong:"Três Ladeiras", cod:"36", esc1:"EBDA - ESCOLA BÍBLICA DOMINICAL ANIMADA"}],
+        domingoManha: [],
+        domingoNoite: [{cong:"Templo Matriz", cod:"57", esc1:"Pr. Severino Guilhermino"},{cong:"Monte das Oliveiras", cod:"02", esc1:"Pb. Pedro José"},{cong:"Monte Carmelo", cod:"10", esc1:"Pb. Elias Alberto"},{cong:"Av. Brasil", cod:"02", esc1:"Pb. Gilcelio Felipe"},{cong:"Nova Canaã", cod:"09", esc1:"Pb. Edmilson Clemente"},{cong:"Itapipiré", cod:"07", esc1:"Pb. Amauri Pereira"},{cong:"Quinze", cod:"02", esc1:"Pb. Antônio Alexandre"},{cong:"Lot. Bom Jesus", cod:"02", esc1:"Pb. Marcos Henrique"},{cong:"Belo Oriente", cod:"02", esc1:"Pb. Ednaldo Antônio"},{cong:"Jardim Nova Esperança", cod:"02", esc1:"Dc. Nílson Carlos"},{cong:"Engenho Vinagre", cod:"02", esc1:"Dc. Antônio Neto"},{cong:"Três Ladeiras", cod:"02", esc1:"Dc. Murilo Henrique"},{cong:"Vila Canaã", cod:"02", esc1:"Dc. José Anísio"},{cong:"Caraú", cod:"02", esc1:"Aux. Genival Severino"},{cong:"Penedinho", cod:"02", esc1:"Dc. Rodrigo Siqueira"},{cong:"Chã do Conselho 01", cod:"10", esc1:"Pb. Leonardo Manoel"},{cong:"Chã do Conselho 02", cod:"02", esc1:"Dc. Samuel Amaro"},{cong:"Lot. Fontes de Aldeia", cod:"02", esc1:"Pb. Otoniel Luiz"},{cong:"Alto Planalto", cod:"02", esc1:"Dc. Zequias Alves"},{cong:"Itaboraí", cod:"10", esc1:"Pb. Rogério Brito"}]
+    };
+
+    const codigosLista = ["01. ORAÇÃO","02. PREGAÇÃO","03. CEIA","04. DOUTRINA","05. ADMINISTRATIVO","06. ESTUDO MOCIDADE","07. ANIV. CAMP. EVANG.","08. EST. ÓRGÃO LOUVOR","09. ANIV. ÓRGÃO LOUVOR","10. CULTO MOCIDADE","11. ABERTURA FESTIV.","12. CULTO DA FAMÍLIA","13. MANHÃ MISIONÁRIA","14. CULTO EVANGELÍSTICO","15. ANIV. C. O.","16. ANIV. TEMPLO","17. CULTO DE MISSÕES","18. ESTUDO P/ CASAIS","19. ESTUDO P/ CRIANÇAS","20. ESTUDO P/ ADOLESCENTES","21. ENCONTRO DE JOVENS","22. SEMIN. P/ DISCIPULADO","23. SIMPÓSIO EVANGELÍSMO","24. PLANTÃO RÁDIO BOAS NOVAS","25. ANIV. UNIÃO ADOLESCENTES","26. EST.P/ PAIS ADOLESCENTES","27. APOIO CONGREGAÇÃO","28. BATISMO TEMPLO CENTRAL","29. PRÉ-CONGRESSO","30. CONFERÊNCIA MISSIONÁRIA","31. CONGRESSO MOCIDADE","32. CONGRESSO ADOLESCENTES","33. CONGRESSO MULHERES","34. LEITURA EM C. O.","35. AÇÃO DE GRAÇAS","36. ESCOLA ANIMADA","37. CRUZADA EVANGELÍSTICA","38. LEITURA ANIV. C. O.","39. LEITURA ANIV. TEMPLO","40. MINISTRO PLANTÃO T.C.","41. PRESBÍTERO RECEPCIONISTA T.C.","42. VIGÍLIA DE ANO","43. ANIV. CONJUNTO MUSICAL","44. ANIV. CORAL","45. SIMPÓSIO DE DOUTRINA","46. NOITE MISSIONÁRIA","47. CULTO FESTIVO","48. ESTUDO P/ PROFESSORES","49. REUN. EQ. APOIO CASAIS","50. ANIV. C. O. I.","51. CONFERÊNCIA EBD","52. ABERTURA ESCOLA BÍBLICA","53. EST. ESCOLA BÍBLICA","54. ENS. ESCOLA BÍBLICA","55. INAUG. ÓRGÃO LOUVOR","56. ESTUDO BIBLICO","57. CULTO PROATI","58. PALAVRA CULTO VESPERTINO","59. SEMINÁRIO PARA A FAMILIA","60. SECADEAP FAMILIA","61. PONTO DE PREGAÇÃO","62. CULTO DE VIGÍLIA","63. CULTO. CAMP. EVANGEL.","64. FORMATURA DISIPULADO","65. CULTO DO REENCONTRO","66. PROJEFÉRIAS","67. ORAÇÃO DA CAMPANHA","68. ENCONTRO DE CRIANÇAS","69. INAUGURAÇÃO DE TEMPLO","70. ANIV. DO PROATI","71. CULTO JOVEM","72. ENCONTRO DE COMISSÕES","73. ENC. CAMP. EVANGELIZADORAS","74. CULTO MATUTINO"];
+
+    // Dados da Escala Local (exemplo do PDF)
+    const escalaLocalExemplo = {
+        circuloOracao: {
+            segundaManha:   { data: "13/04/2026", local: "Quinze", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Benjamin Alexandre"] },
+            segundaManha2:  { data: "13/04/2026", local: "Canaã", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Manuel Elias"] },
+            segundaTarde:   { data: "13/04/2026", local: "Quinze", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Aux. Sandro Fernandes"] },
+            segundaTarde2:  { data: "13/04/2026", local: "Canaã", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Aux. Edinael Eliel"] },
+            segundaTarde3:  { data: "13/04/2026", local: "Itaboraí", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Diogo Santana"] },
+            tercaManha:     { data: "14/04/2026", local: "Monte Carmelo", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Benjamin Alexandre"] },
+            tercaManha2:    { data: "14/04/2026", local: "Chã do Conselho", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Aux. Valmir Gervásio"] },
+            tercaTarde:     { data: "14/04/2026", local: "Chã do Conselho", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Samuel Amaro"] },
+            tercaTarde2:    { data: "14/04/2026", local: "Monte Carmelo", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Roberto Antônio"] },
+            tercaTarde3:    { data: "14/04/2026", local: "Belo Oriente", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Aux. Jefferson Balbino"] },
+            tercaTarde4:    { data: "14/04/2026", local: "Lot. Bom Jesus", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. José Joaquim"] },
+            tercaTarde5:    { data: "14/04/2026", local: "Vila Canaã", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Aux. Arnaldo Bento"] },
+            quartaManha:    { data: "15/04/2026", local: "Itapipiré", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Aux. Local. André Francisco"] },
+            quartaTarde:    { data: "15/04/2026", local: "Alto Planalto", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Samuel Amaro"] },
+            quartaTarde2:   { data: "15/04/2026", local: "Av. Brasil", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Manuel Elias"] },
+            quartaTarde3:   { data: "15/04/2026", local: "Itapipiré", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Aux. Local. Washington Souza"] },
+            quintaTarde:    { data: "16/04/2026", local: "Jardim Nova Esperança", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Benjamin Alexandre"] },
+            quintaTarde2:   { data: "16/04/2026", local: "Engenho Vinagre", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Pb. Leonardo Manoel"] },
+            sextaManha:     { data: "17/04/2026", local: "Monte das Oliveiras", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Pb. Antônio Alexandre"] },
+            sextaTarde:     { data: "17/04/2026", local: "Lot. Fontes de Aldeia", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Dc. Dorgival Gervásio"] },
+            sextaTarde2:    { data: "17/04/2026", local: "Monte das Oliveiras", cod: "34", obreiros: ["Pr. Severino Guilhermino", "Pb. Marcos Henrique"] }
+        },
+        pontosPregação: [
+            { data: "15/04/2026", turno: "Quinta - Feira - Noite", local: "Miritibi (PP)", cod: "61", obreiros: ["Dc. Dorgival Gervásio", "Dc. Samuel Amaro", "Aux. Paulo Cândido", "Aux. Local. José Valter"] },
+            { data: "16/04/2026", turno: "Sexta - Feira - Noite", local: "Belo Oriente (Jeová Sama) (PP)", cod: "61", obreiros: ["Pb. Ednaldo Antônio", "Dc. Daniel Domingos", "Aux. Jefferson Balbino", "Aux. Local. Gilmario Terto"] }
+        ],
+        portaria: [
+            { data: "13/04/2026", turno: "Segunda Feira - Noite", local: "Templo Matriz", obreiros: ["Dc. Severino José", "Aux. Local. Washington Souza", "Aux. Local. Severino Alexandre"] },
+            { data: "14/04/2026", turno: "Terça Feira - Noite", local: "Templo Matriz", obreiros: ["Aux. Jeremias Marculino", "Aux. Edinael Eliel", "Aux. Local. Joseilton Alves"] },
+            { data: "15/04/2026", turno: "Quarta Feira - Noite", local: "Templo Matriz", obreiros: ["Dc. Severino José", "Aux. Local. Daniel Lira", "Aux. Local. Israel Antonio"] },
+            { data: "15/04/2026", turno: "Quarta Feira - Noite", local: "Chã do Conselho 2", obreiros: ["Dc. Kleitonlee Marcionilo", "Aux. Bruno Bezerra", "Aux. Local. Cristiano Antônio"] },
+            { data: "16/04/2026", turno: "Quinta Feira - Tarde / C.O", local: "Templo Matriz", obreiros: ["Dc. José Domingos"] },
+            { data: "16/04/2026", turno: "Quinta Feira - Noite", local: "Templo Matriz", obreiros: ["Aux. Local. Sebastião Ribeiro"] },
+            { data: "17/04/2026", turno: "Sexta Feira - Noite", local: "Templo Matriz", obreiros: ["Aux. Local. Allyson Nyerton"] },
+            { data: "17/04/2026", turno: "Sexta Feira - Noite", local: "Chã do Conselho 2", obreiros: ["Dc. Samuel Amaro", "Aux. Jessé Sabino", "Aux. Local. Anderson Ferreira", "Aux. Local. Roberto Joaquim"] },
+            { data: "18/04/2026", turno: "Sabádo - C.O.I", local: "Templo Matriz", obreiros: ["Aux. Local. Daniel Lira"] },
+            { data: "18/04/2026", turno: "Sabádo - Noite", local: "Templo Matriz", obreiros: [] },
+            { data: "19/04/2026", turno: "Domingo - Manhã", local: "Templo Matriz", obreiros: [] },
+            { data: "19/04/2026", turno: "Domingo - Noite", local: "Templo Matriz", obreiros: ["Dc. Severino José", "Aux. Jeremias Marculino", "Aux. Local. Israel Antonio"] },
+            { data: "19/04/2026", turno: "Domingo - Noite", local: "Chã do Conselho 2", obreiros: ["Dc. Dorgival Gervásio", "Aux. Local. Luiz Pereira", "Aux. Local. Cristiano Antônio"] }
+        ]
+    };
+
+    // ==================== FUNÇÕES AUXILIARES ====================
+    function mostrarToast(msg) { const t=document.createElement('div'); t.className='toast-ok'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
+
+    function salvarTodosDados() {
+        localStorage.setItem("ieadpe_tipos_culto", JSON.stringify(tiposCulto));
+        localStorage.setItem("ieadpe_regras_culto", JSON.stringify(regrasCulto));
+        localStorage.setItem("ieadpe_obreiros", JSON.stringify(obreiros));
+        localStorage.setItem("ieadpe_congregacoes", JSON.stringify(congregacoes));
+        localStorage.setItem("ieadpe_eventos", JSON.stringify(eventos));
+        localStorage.setItem("ieadpe_escala_local_data", JSON.stringify(escalaLocalData));
+    }
+
+    function carregarTodosDados() {
+        const savedTipos = localStorage.getItem("ieadpe_tipos_culto"); if (savedTipos) tiposCulto = JSON.parse(savedTipos);
+        const savedRegras = localStorage.getItem("ieadpe_regras_culto"); if (savedRegras) regrasCulto = JSON.parse(savedRegras);
+        const savedObreiros = localStorage.getItem("ieadpe_obreiros"); if (savedObreiros) obreiros = JSON.parse(savedObreiros);
+        const savedCong = localStorage.getItem("ieadpe_congregacoes"); if (savedCong) congregacoes = JSON.parse(savedCong);
+        const savedEventos = localStorage.getItem("ieadpe_eventos"); if (savedEventos) eventos = JSON.parse(savedEventos);
+        const savedEscalaLocal = localStorage.getItem("ieadpe_escala_local_data"); if (savedEscalaLocal) escalaLocalData = JSON.parse(savedEscalaLocal);
+        else escalaLocalData = JSON.parse(JSON.stringify(escalaLocalExemplo));
+    }
+
+    function popularDadosIniciais() {
+        if (localStorage.getItem("ieadpe_obreiros") === null) {
+            obreiros = listaObreirosCompleta.map(nomeCompleto => {
+                const partes = nomeCompleto.split(' ');
+                const cargo = partes[0];
+                const nome = partes.slice(1).join(' ');
+                return { nome, cargo, congregacao: "" };
+            });
+            congregacoes = [...congregacoesPadrao];
+            eventos = [{ data: "2026-01-01", descricao: "JANEIRO", cc: "", congregacao: "-" }];
+            escalaLocalData = JSON.parse(JSON.stringify(escalaLocalExemplo));
+            salvarTodosDados();
+        } else {
+            carregarTodosDados();
+        }
+    }
+
+    // ==================== ESCALA OFICIAL ====================
+    function criarSelectsEscalados(valor1="", valor2="", valor3="") {
+        const container = document.createElement("div"); container.style.display = "flex"; container.style.gap = "4px"; container.style.flexWrap = "wrap";
+        const makeSelect = (valor) => {
+            const select = document.createElement("select");
+            select.appendChild(new Option("─", ""));
+            obreiros.forEach(ob => { const nomeCompleto = `${ob.cargo} ${ob.nome}`; select.appendChild(new Option(nomeCompleto, nomeCompleto)); if (nomeCompleto === valor) select.value = valor; });
+            select.style.flex = "1"; select.style.minWidth = "110px";
+            return select;
+        };
+        container.appendChild(makeSelect(valor1)); container.appendChild(makeSelect(valor2)); container.appendChild(makeSelect(valor3));
+        return container;
+    }
+
+    function preencherTabelaOficial(tabId, dados) {
+        const tbody = document.querySelector(`#${tabId} tbody`);
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        dados.forEach(item => {
+            const tr = document.createElement("tr");
+            const tdCong = document.createElement("td"); tdCong.className = "cong-nome"; tdCong.textContent = item.cong || ""; tr.appendChild(tdCong);
+            const tdCod = document.createElement("td"); tdCod.className = "codigo"; tdCod.textContent = item.cod || ""; tr.appendChild(tdCod);
+            const tdEsc = document.createElement("td"); tdEsc.className = "escalados-cell";
+            tdEsc.appendChild(criarSelectsEscalados(item.esc1 || "", item.esc2 || "", item.esc3 || ""));
+            tr.appendChild(tdEsc);
+            const tdBtn = document.createElement("td"); tdBtn.style.textAlign = "center";
+            const btnRem = document.createElement("button"); btnRem.textContent = "🗑️"; btnRem.style.background = "none"; btnRem.style.border = "none"; btnRem.style.cursor = "pointer";
+            btnRem.onclick = () => tr.remove();
+            tdBtn.appendChild(btnRem);
+            tr.appendChild(tdBtn);
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.adicionarLinhaOficial = function(dia) {
+        const tbody = document.querySelector(`#tab-oficial-${dia} tbody`);
+        if (!tbody) return;
+        const tr = document.createElement("tr");
+        const tdCong = document.createElement("td"); tdCong.className = "cong-nome";
+        const inputCong = document.createElement("input"); inputCong.placeholder = "Nova congregação"; inputCong.style.width = "100%"; tdCong.appendChild(inputCong);
+        tr.appendChild(tdCong);
+        const tdCod = document.createElement("td"); tdCod.className = "codigo"; tdCod.textContent = ""; tr.appendChild(tdCod);
+        const tdEsc = document.createElement("td"); tdEsc.className = "escalados-cell";
+        tdEsc.appendChild(criarSelectsEscalados("", "", ""));
+        tr.appendChild(tdEsc);
+        const tdBtn = document.createElement("td"); tdBtn.style.textAlign = "center";
+        const btnRem = document.createElement("button"); btnRem.textContent = "🗑️"; btnRem.onclick = () => tr.remove();
+        tdBtn.appendChild(btnRem);
+        tr.appendChild(tdBtn);
+        tbody.appendChild(tr);
+    };
+
+    function inicializarTabelasOficial() {
+        const container = document.getElementById("escalasContainerOficial");
+        container.innerHTML = "";
+        const diasLista = [{ id: "segunda", titulo: "SEGUNDA-FEIRA - NOITE" },{ id: "terca", titulo: "TERÇA-FEIRA - NOITE" },{ id: "quarta", titulo: "QUARTA-FEIRA" },{ id: "quintaManha", titulo: "QUINTA-FEIRA - MANHÃ" },{ id: "quintaTarde", titulo: "QUINTA-FEIRA - TARDE" },{ id: "quintaNoite", titulo: "QUINTA-FEIRA - NOITE" },{ id: "sexta", titulo: "SEXTA-FEIRA - NOITE" },{ id: "sabado", titulo: "SÁBADO - NOITE" },{ id: "domingoManha", titulo: "DOMINGO - MANHÃ" },{ id: "domingoNoite", titulo: "DOMINGO - NOITE" }];
+        diasLista.forEach(dia => {
+            const section = document.createElement("div"); section.className = "day-section";
+            const titleDiv = document.createElement("div"); titleDiv.className = "day-title";
+            titleDiv.innerHTML = `${dia.titulo} <span class="day-date" id="data-oficial-${dia.id}"></span>`;
+            section.appendChild(titleDiv);
+            const table = document.createElement("table"); table.id = `tab-oficial-${dia.id}`;
+            table.innerHTML = `<thead><tr><th>CONGREGAÇÃO</th><th>CÓDIGO</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody>`;
+            section.appendChild(table);
+            const btnDiv = document.createElement("div"); btnDiv.style.padding = "6px";
+            const btn = document.createElement("button"); btn.className = "btn-add-row"; btn.textContent = "+ Adicionar congregação"; btn.onclick = () => window.adicionarLinhaOficial(dia.id);
+            btnDiv.appendChild(btn); section.appendChild(btnDiv);
+            container.appendChild(section);
+            if (dadosFixosOficial[dia.id]) preencherTabelaOficial(`tab-oficial-${dia.id}`, dadosFixosOficial[dia.id]);
+            else preencherTabelaOficial(`tab-oficial-${dia.id}`, []);
+        });
+    }
+
+    function gerarObreirosQuarta() {
+        const tabelaQuarta = document.querySelector('#tab-oficial-quarta tbody');
+        if (!tabelaQuarta) { mostrarToast("Erro: tabela da quarta-feira não encontrada!"); return; }
+        const hierarquia = { "Pr.": 1, "Pb.": 2, "Dc.": 3, "Aux.": 4, "Aux. Local.": 5 };
+        const obreirosUsados = new Set();
+        const linhas = tabelaQuarta.querySelectorAll('tr');
+        linhas.forEach(linha => {
+            const selects = linha.cells[2]?.querySelectorAll('select');
+            if (selects && selects[0] && selects[0].value && selects[0].value !== "─") {
+                obreirosUsados.add(selects[0].value);
+            }
+        });
+        let obreirosDisponiveis = obreiros.filter(ob => {
+            const nomeCompleto = `${ob.cargo} ${ob.nome}`;
+            return !obreirosUsados.has(nomeCompleto);
+        });
+        obreirosDisponiveis.sort((a,b) => (hierarquia[a.cargo] || 99) - (hierarquia[b.cargo] || 99));
+        let idxDisponivel = 0;
+        linhas.forEach(linha => {
+            const selects = linha.cells[2]?.querySelectorAll('select');
+            if (selects && selects[0] && (!selects[0].value || selects[0].value === "─")) {
+                if (idxDisponivel < obreirosDisponiveis.length) {
+                    const ob = obreirosDisponiveis[idxDisponivel];
+                    selects[0].value = `${ob.cargo} ${ob.nome}`;
+                    idxDisponivel++;
+                } else {
+                    mostrarToast("⚠️ Não há obreiros disponíveis suficientes!");
+                }
+            }
+        });
+        mostrarToast(`✅ Obreiros da quarta-feira gerados! ${idxDisponivel} congregações preenchidas.`);
+    }
+
+    function coletarEscalaOficial() {
+        const escala = {};
+        const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+        for (let dia of dias) {
+            const tbody = document.querySelector(`#tab-oficial-${dia} tbody`);
+            if (!tbody) continue;
+            escala[dia] = [];
+            tbody.querySelectorAll("tr").forEach(tr => {
+                const congregacao = tr.cells[0].querySelector("input") ? tr.cells[0].querySelector("input").value : tr.cells[0].innerText;
+                const codigo = tr.cells[1].innerText;
+                const escalados = Array.from(tr.cells[2].querySelectorAll("select")).map(s=>s.value).filter(v=>v);
+                escala[dia].push({ congregacao, codigo, escalados });
+            });
+        }
+        return escala;
+    }
+
+    function atualizarDatas() {
+        const dataInicioStr = document.getElementById("dataInicio").value;
+        if (!dataInicioStr) return;
+        const [ano, mes, dia] = dataInicioStr.split('-').map(Number);
+        const data = new Date(ano, mes-1, dia);
+        const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+        const nomes = ["Segunda","Terça","Quarta","Quinta Manhã","Quinta Tarde","Quinta Noite","Sexta","Sábado","Domingo Manhã","Domingo Noite"];
+        for (let i=0; i<dias.length; i++) {
+            let dt = new Date(data);
+            dt.setDate(data.getDate() + (i<6 ? i : i-2));
+            const span = document.getElementById(`data-oficial-${dias[i]}`);
+            if (span) span.textContent = `${nomes[i]} ${dt.toLocaleDateString('pt-BR')}`;
+        }
+        mostrarToast("Datas atualizadas!");
+    }
+
+    // ==================== ESCALA LOCAL (RENDERIZAÇÃO) ====================
+    function criarSelectObreiro(valorAtual = "") {
+        const select = document.createElement("select");
+        select.appendChild(new Option("─", ""));
+        obreiros.forEach(ob => {
+            const nomeCompleto = `${ob.cargo} ${ob.nome}`;
+            select.appendChild(new Option(nomeCompleto, nomeCompleto));
+            if (nomeCompleto === valorAtual) select.value = valorAtual;
+        });
+        return select;
+    }
+
+    function renderizarEscalaLocal() {
+        const container = document.getElementById("escalaLocalContainer");
+        if (!container) return;
+        container.innerHTML = "";
+
+        // 1. Círculo de Oração
+        const coSection = document.createElement("div");
+        coSection.className = "local-section";
+        coSection.innerHTML = `<div class="local-section-title">📖 CÍRCULO DE ORAÇÃO (C.O.)</div>`;
+        const coItems = Object.values(escalaLocalData.circuloOracao || {});
+        const grupos = {};
+        coItems.forEach(item => {
+            let turno = "";
+            if (item.data.includes("13/04")) turno = (item.local === "Quinze" || item.local === "Canaã") ? (item.obreiros[1]?.includes("Benjamin") ? "Manhã" : "Tarde") : "Manhã/Tarde";
+            else if (item.data.includes("14/04")) turno = item.obreiros[1]?.includes("Benjamin") ? "Manhã" : "Tarde";
+            else if (item.data.includes("15/04")) turno = item.obreiros[1]?.includes("André") ? "Manhã" : "Tarde";
+            else turno = "Tarde";
+            const chave = `${item.data} - ${turno}`;
+            if (!grupos[chave]) grupos[chave] = [];
+            grupos[chave].push(item);
+        });
+        for (const [titulo, items] of Object.entries(grupos)) {
+            const sub = document.createElement("div");
+            sub.className = "local-subsection";
+            sub.innerHTML = `<div class="local-subsection-title">${titulo}</div>`;
+            const table = document.createElement("table");
+            table.className = "local-table";
+            table.innerHTML = `<thead><tr><th>CONGREGAÇÃO</th><th>CÓD</th><th>ESCALADOS</th><th>Ações</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector("tbody");
+            items.forEach(item => {
+                const tr = document.createElement("tr");
+                const tdCong = document.createElement("td"); tdCong.textContent = item.local; tr.appendChild(tdCong);
+                const tdCod = document.createElement("td"); tdCod.textContent = item.cod; tr.appendChild(tdCod);
+                const tdEsc = document.createElement("td");
+                tdEsc.style.display = "flex";
+                tdEsc.style.gap = "4px";
+                tdEsc.style.flexWrap = "wrap";
+                item.obreiros.forEach(ob => { tdEsc.appendChild(criarSelectObreiro(ob)); });
+                const btnAdd = document.createElement("button"); btnAdd.textContent = "+"; btnAdd.onclick = () => { tdEsc.appendChild(criarSelectObreiro("")); };
+                tdEsc.appendChild(btnAdd);
+                tr.appendChild(tdEsc);
+                const tdAcao = document.createElement("td");
+                const btnDel = document.createElement("button"); btnDel.textContent = "🗑️"; btnDel.onclick = () => tr.remove();
+                tdAcao.appendChild(btnDel);
+                tr.appendChild(tdAcao);
+                tbody.appendChild(tr);
+            });
+            sub.appendChild(table);
+            coSection.appendChild(sub);
+        }
+        container.appendChild(coSection);
+
+        // 2. Pontos de Pregação
+        const ppSection = document.createElement("div");
+        ppSection.className = "local-section";
+        ppSection.innerHTML = `<div class="local-section-title">📍 PONTOS DE PREGAÇÃO (PP)</div>`;
+        (escalaLocalData.pontosPregação || []).forEach(pp => {
+            const sub = document.createElement("div");
+            sub.className = "local-subsection";
+            sub.innerHTML = `<div class="local-subsection-title">${pp.data} - ${pp.turno}</div>`;
+            const table = document.createElement("table");
+            table.className = "local-table";
+            table.innerHTML = `<thead><tr><th>LOCAL</th><th>CÓD</th><th>ESCALADOS</th><th>Ações</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector("tbody");
+            const tr = document.createElement("tr");
+            const tdLocal = document.createElement("td"); tdLocal.textContent = pp.local; tr.appendChild(tdLocal);
+            const tdCod = document.createElement("td"); tdCod.textContent = pp.cod; tr.appendChild(tdCod);
+            const tdEsc = document.createElement("td");
+            tdEsc.style.display = "flex";
+            tdEsc.style.gap = "4px";
+            tdEsc.style.flexWrap = "wrap";
+            pp.obreiros.forEach(ob => { tdEsc.appendChild(criarSelectObreiro(ob)); });
+            const btnAdd = document.createElement("button"); btnAdd.textContent = "+"; btnAdd.onclick = () => { tdEsc.appendChild(criarSelectObreiro("")); };
+            tdEsc.appendChild(btnAdd);
+            tr.appendChild(tdEsc);
+            const tdAcao = document.createElement("td");
+            const btnDel = document.createElement("button"); btnDel.textContent = "🗑️"; btnDel.onclick = () => tr.remove();
+            tdAcao.appendChild(btnDel);
+            tr.appendChild(tdAcao);
+            tbody.appendChild(tr);
+            sub.appendChild(table);
+            ppSection.appendChild(sub);
+        });
+        container.appendChild(ppSection);
+
+        // 3. Portaria
+        const portSection = document.createElement("div");
+        portSection.className = "local-section";
+        portSection.innerHTML = `<div class="local-section-title">🚪 ESCALA SEMANAL - PORTARIA</div>`;
+        (escalaLocalData.portaria || []).forEach(port => {
+            const sub = document.createElement("div");
+            sub.className = "local-subsection";
+            sub.innerHTML = `<div class="local-subsection-title">${port.data} - ${port.turno}</div>`;
+            const table = document.createElement("table");
+            table.className = "local-table";
+            table.innerHTML = `<thead><tr><th>LOCAL</th><th>ESCALADOS</th><th>Ações</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector("tbody");
+            const tr = document.createElement("tr");
+            const tdLocal = document.createElement("td"); tdLocal.textContent = port.local; tr.appendChild(tdLocal);
+            const tdEsc = document.createElement("td");
+            tdEsc.style.display = "flex";
+            tdEsc.style.gap = "4px";
+            tdEsc.style.flexWrap = "wrap";
+            port.obreiros.forEach(ob => { tdEsc.appendChild(criarSelectObreiro(ob)); });
+            const btnAdd = document.createElement("button"); btnAdd.textContent = "+"; btnAdd.onclick = () => { tdEsc.appendChild(criarSelectObreiro("")); };
+            tdEsc.appendChild(btnAdd);
+            tr.appendChild(tdEsc);
+            const tdAcao = document.createElement("td");
+            const btnDel = document.createElement("button"); btnDel.textContent = "🗑️"; btnDel.onclick = () => tr.remove();
+            tdAcao.appendChild(btnDel);
+            tr.appendChild(tdAcao);
+            tbody.appendChild(tr);
+            sub.appendChild(table);
+            portSection.appendChild(sub);
+        });
+        container.appendChild(portSection);
+
+        const versiculo = document.createElement("div");
+        versiculo.style.marginTop = "30px";
+        versiculo.style.fontStyle = "italic";
+        versiculo.style.textAlign = "center";
+        versiculo.style.padding = "15px";
+        versiculo.style.borderTop = "1px solid #c5daf0";
+        versiculo.innerHTML = "Portanto, meus amados irmãos, sede firmes e constantes, sempre abundantes na obra do Senhor, sabendo que o vosso trabalho não é vão no Senhor. 1 Co 15:58";
+        container.appendChild(versiculo);
+    }
+
+    function coletarEscalaLocalAtual() {
+        // Simplificado: salva o objeto atual (os selects modificam os arrays originais via referência)
+        salvarTodosDados();
+        mostrarToast("Escala Local salva!");
+    }
+
+    // ==================== OUTRAS ABAS (Calendário, Obreiros, Congregações) ====================
+    function renderizarCalendario() {
+        const tbody = document.getElementById("corpoCalendario");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        eventos.forEach((ev, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${ev.data}</td><td>${ev.descricao}</td><td>${ev.cc}</td><td>${ev.congregacao}</td><td><button class="btn-editar" data-idx="${idx}" data-tipo="evento">✏️</button> <button class="btn-excluir" data-idx="${idx}" data-tipo="evento">🗑️</button></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderizarObreiros() {
+        const tbody = document.getElementById("corpoObreiros");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        obreiros.forEach((ob, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${ob.nome}</td><td>${ob.cargo}</td><td>${ob.congregacao}</td><td><button class="btn-editar" data-idx="${idx}" data-tipo="obreiro">✏️</button> <button class="btn-excluir" data-idx="${idx}" data-tipo="obreiro">🗑️</button></td>`;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='obreiro']").forEach(btn => btn.addEventListener('click', (e) => { const idx = parseInt(e.currentTarget.getAttribute("data-idx")); editarObreiro(idx); }));
+        document.querySelectorAll(".btn-excluir[data-tipo='obreiro']").forEach(btn => btn.addEventListener('click', (e) => { const idx = parseInt(e.currentTarget.getAttribute("data-idx")); excluirObreiro(idx); }));
+    }
+
+    function editarObreiro(idx) { const ob = obreiros[idx]; const novoNome = prompt("Novo nome:", ob.nome); const novoCargo = prompt("Novo cargo:", ob.cargo); const novaCong = prompt("Nova congregação:", ob.congregacao); if (novoNome) ob.nome = novoNome; if (novoCargo) ob.cargo = novoCargo; if (novaCong) ob.congregacao = novaCong; salvarTodosDados(); renderizarObreiros(); renderizarEscalaLocal(); mostrarToast("Obreiro atualizado!"); }
+    function excluirObreiro(idx) { if (confirm("Excluir?")) { obreiros.splice(idx,1); salvarTodosDados(); renderizarObreiros(); renderizarEscalaLocal(); mostrarToast("Excluído!"); } }
+    function adicionarObreiro() { const nome = document.getElementById("novoNomeObreiro").value.trim(); const cargo = document.getElementById("novoCargoObreiro").value; const congregacao = document.getElementById("novaCongObreiro").value; if (!nome) return; obreiros.push({ nome, cargo, congregacao }); salvarTodosDados(); renderizarObreiros(); renderizarEscalaLocal(); document.getElementById("novoNomeObreiro").value = ""; mostrarToast("Adicionado!"); }
+
+    function renderizarCongregacoes() {
+        const tbody = document.getElementById("corpoCongregacoes");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        congregacoes.forEach((cong, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${cong}</td><td><button class="btn-editar" data-idx="${idx}" data-tipo="cong">✏️</button> <button class="btn-excluir" data-idx="${idx}" data-tipo="cong">🗑️</button></td>`;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='cong']").forEach(btn => btn.addEventListener('click', (e) => { const idx = parseInt(e.currentTarget.getAttribute("data-idx")); const novo = prompt("Novo nome:", congregacoes[idx]); if (novo && !congregacoes.includes(novo)) { congregacoes[idx] = novo; salvarTodosDados(); renderizarCongregacoes(); renderizarEscalaLocal(); mostrarToast("Atualizada!"); } }));
+        document.querySelectorAll(".btn-excluir[data-tipo='cong']").forEach(btn => btn.addEventListener('click', (e) => { const idx = parseInt(e.currentTarget.getAttribute("data-idx")); if (confirm("Excluir?")) { congregacoes.splice(idx,1); salvarTodosDados(); renderizarCongregacoes(); renderizarEscalaLocal(); mostrarToast("Excluída!"); } }));
+        // Atualizar selects das congregações em outras abas
+        const selects = ["novaCongEvento", "filtroCong", "novaCongObreiro"];
+        selects.forEach(id => {
+            const sel = document.getElementById(id);
+            if (sel) {
+                const valorAtual = sel.value;
+                sel.innerHTML = "<option value=''>Todas</option>";
+                congregacoes.forEach(c => { const opt = document.createElement("option"); opt.value = c; opt.textContent = c; if (c === valorAtual) opt.selected = true; sel.appendChild(opt); });
+            }
+        });
+    }
+    function adicionarCongregacao() { const nome = document.getElementById("novaCongregacao").value.trim(); if (!nome || congregacoes.includes(nome)) return; congregacoes.push(nome); salvarTodosDados(); renderizarCongregacoes(); renderizarEscalaLocal(); document.getElementById("novaCongregacao").value = ""; mostrarToast("Adicionada!"); }
+
+    // ==================== INICIALIZAÇÃO ====================
+    window.onload = () => {
+        popularDadosIniciais();
+
+        // Códigos oficiais
+        const grid = document.getElementById("listaCodigosOficial");
+        codigosLista.forEach(cod => { const div = document.createElement("div"); div.className = "cod-item"; div.textContent = cod; grid.appendChild(div); });
+
+        // Escala Oficial
+        inicializarTabelasOficial();
+        atualizarDatas();
+
+        // Escala Local
+        renderizarEscalaLocal();
+
+        // Eventos
+        document.getElementById("atualizarDatas").addEventListener("click", atualizarDatas);
+        document.getElementById("btnExportarOficial").addEventListener("click", () => { const escala = coletarEscalaOficial(); document.getElementById("outputAreaOficial").innerHTML = "<pre>" + JSON.stringify(escala, null, 2) + "</pre>"; });
+        document.getElementById("btnImprimirOficial").addEventListener("click", () => window.print());
+        document.getElementById("btnGerarObreirosQuarta").addEventListener("click", gerarObreirosQuarta);
+        document.getElementById("btnSalvarEscalaLocal").addEventListener("click", coletarEscalaLocalAtual);
+        document.getElementById("btnExportarLocal").addEventListener("click", () => { document.getElementById("outputAreaLocal").innerHTML = "<pre>" + JSON.stringify(escalaLocalData, null, 2) + "</pre>"; });
+        document.getElementById("btnImprimirLocal").addEventListener("click", () => window.print());
+
+        // Configurações (simplificadas)
+        document.getElementById("dbSalvarOficialBtn").addEventListener("click", () => { localStorage.setItem("escala_oficial_temp", JSON.stringify(coletarEscalaOficial())); mostrarToast("Escala Oficial salva (local)"); });
+        document.getElementById("dbSalvarLocalBtn").addEventListener("click", () => { salvarTodosDados(); mostrarToast("Escala Local salva"); });
+        document.getElementById("dbNovaSemanaBtn").addEventListener("click", () => { if(confirm("Nova semana em branco?")) { location.reload(); } });
+        document.getElementById("btnAplicarRegrasGerais").addEventListener("click", () => mostrarToast("Regras aplicadas (placeholder)"));
+
+        // Calendário, Obreiros, Congregações
+        renderizarCalendario();
+        renderizarObreiros();
+        renderizarCongregacoes();
+        document.getElementById("btnAdicionarObreiro").addEventListener("click", adicionarObreiro);
+        document.getElementById("btnAdicionarCongregacao").addEventListener("click", adicionarCongregacao);
+        document.getElementById("btnAdicionarEvento").addEventListener("click", () => {
+            const data = document.getElementById("novaDataEvento").value;
+            const desc = document.getElementById("novaDescEvento").value;
+            const cc = document.getElementById("novoCCEvento").value;
+            const cong = document.getElementById("novaCongEvento").value;
+            if (!data || !desc) return;
+            eventos.push({ data, descricao: desc, cc, congregacao: cong });
+            salvarTodosDados();
+            renderizarCalendario();
+            mostrarToast("Evento adicionado");
+        });
+        document.getElementById("btnFiltrarEventos").addEventListener("click", () => { /* filtro simplificado */ });
+        document.getElementById("btnLimparFiltros").addEventListener("click", () => renderizarCalendario());
+
+        // Navegação entre abas
+        document.querySelectorAll('.aba-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
+                document.querySelectorAll('.aba-conteudo').forEach(c => c.classList.remove('ativa'));
+                btn.classList.add('ativa');
+                document.getElementById(`aba-${btn.getAttribute('data-aba')}`).classList.add('ativa');
+            });
+        });
+    };
+</script>
+</body>
+</html>

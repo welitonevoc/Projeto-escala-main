@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IEADPE - Escala Oficial + Escala Local + Calendário</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Calibri', sans-serif;
+            background: #eef3f9;
+            margin: 0;
+            padding: 0;
+            color: #0a2a4a;
+        }
+        /* Menu superior fixo */
+        .menu-fixo {
+            position: sticky;
+            top: 0;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 0 20px;
+            border-bottom: 2px solid #1a5fa0;
+        }
+        .abas {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .aba-btn {
+            background: #e6f0fa;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #0d3d7a;
+            transition: 0.2s;
+            border-radius: 8px 8px 0 0;
+        }
+        .aba-btn.ativa {
+            background: #0d4a8a;
+            color: white;
+            border-bottom: 3px solid #ffaa00;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 24px 20px 30px 20px;
+        }
+        .data-semana {
+            background: #e6f0fa;
+            padding: 10px 15px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .aba-conteudo { display: none; }
+        .aba-conteudo.ativa { display: block; }
+        
+        /* Estilos das tabelas de escala */
+        .day-section {
+            margin-bottom: 35px;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid #c5daf0;
+            overflow-x: auto;
+        }
+        .day-title {
+            background: #0d4a8a;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-left: 8px solid #1a70b8;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .day-date {
+            font-size: 0.8rem;
+            background: #1a5a9a;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #e6f0fa;
+            color: #0d3d7a;
+            padding: 10px 5px;
+            border-bottom: 2px solid #a8c8e8;
+        }
+        td {
+            border: 1px solid #c5d8ef;
+            padding: 6px 4px;
+            vertical-align: middle;
+        }
+        .cong-nome { font-weight: 600; background-color: #f5f9ff; width: 30%; }
+        .codigo { text-align: center; width: 10%; font-weight: bold; color: #1a5fa0; background: #fff9e8; }
+        .escalados-cell { width: 55%; }
+        .escalados-cell select { width: 32%; margin: 0 1%; padding: 4px; border-radius: 8px; }
+        .btn-add-row {
+            background: #1a70b820;
+            border: 1px dashed #1a5fa0;
+            padding: 6px 12px;
+            margin: 8px 0;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .btn-salvar {
+            background: #0d4a8a;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .output {
+            background: #f5f9ff;
+            border: 1px solid #c0d8f0;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 30px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow: auto;
+        }
+        .config-painel {
+            background: #f0f6ff;
+            border: 2px solid #1a5fa0;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 22px;
+        }
+        .config-painel h3 {
+            background: #0d4a8a;
+            color: white;
+            margin: -16px -18px 14px -18px;
+            padding: 10px 16px;
+            border-radius: 14px 14px 0 0;
+            font-size: 0.97rem;
+        }
+        .config-linha {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .config-linha label { font-weight: bold; width: 180px; }
+        .config-linha input, .config-linha select { padding: 6px 12px; border-radius: 20px; border: 1px solid #a8c8e8; }
+        .regras-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .regras-tabela th, .regras-tabela td {
+            border: 1px solid #c5daf0;
+            padding: 8px;
+            text-align: center;
+        }
+        .btn-db {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.82rem;
+        }
+        .btn-db-salvar { background: #0d4a8a; color: white; }
+        .btn-db-novo { background: #2a8a2a; color: white; }
+        .btn-aplicar-regras { background: #e68a2e; color: white; }
+        .lista-regras {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .regra-item {
+            background: white;
+            border: 1px solid #c5daf0;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .regra-info { font-size: 0.85rem; }
+        .regra-botoes button {
+            margin-left: 8px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .toast-ok {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #0d4a8a; color: white; padding: 12px 28px;
+            border-radius: 30px; font-weight: bold; font-size: 0.9rem;
+            z-index: 9999;
+            animation: fadeInOut 2.5s ease forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .tipo-personalizado { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .lista-tipos { margin-top: 15px; }
+        .tipo-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 5px 10px; margin-bottom: 5px; border-radius: 30px; border: 1px solid #c5daf0; }
+        .db-semanas-lista { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .semana-tag { background: white; border: 1.5px solid #1a5fa0; border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .semana-tag .del-tag { color: #cc0000; cursor: pointer; }
+        .calendario-tabela, .obreiros-tabela, .congregacoes-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+        .calendario-tabela th, .obreiros-tabela th, .congregacoes-tabela th {
+            background: #0d4a8a;
+            color: white;
+            padding: 10px;
+        }
+        .calendario-tabela td, .obreiros-tabela td, .congregacoes-tabela td {
+            border: 1px solid #c5daf0;
+            padding: 8px;
+        }
+        .btn-editar, .btn-excluir {
+            padding: 4px 8px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+        .btn-editar { background: #1a5fa0; color: white; }
+        .btn-excluir { background: #cc3a1a; color: white; }
+        .form-inline { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .filtros {
+            background: #f5f9ff;
+            padding: 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .filtros input, .filtros select {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #a8c8e8;
+        }
+        .filtros button {
+            background: #0d4a8a;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="menu-fixo">
+    <div class="abas">
+        <button class="aba-btn ativa" data-aba="escala-oficial">📆 Escala Oficial</button>
+        <button class="aba-btn" data-aba="escala-local">📆 Escala Local</button>
+        <button class="aba-btn" data-aba="config">⚙️ Configurações</button>
+        <button class="aba-btn" data-aba="calendario">📅 Calendário 2026</button>
+        <button class="aba-btn" data-aba="obreiros">👥 Obreiros</button>
+        <button class="aba-btn" data-aba="congregacoes">🏘️ Congregações</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="data-semana">
+        <label>📅 Semana de (segunda-feira):</label>
+        <input type="date" id="dataInicio" value="2026-04-20">
+        <button id="atualizarDatas" class="btn-add-row" style="background:#0d4a8a; color:white;">Atualizar Datas e Aplicar Regras</button>
+    </div>
+
+    <!-- Aba Escala Oficial -->
+    <div id="aba-escala-oficial" class="aba-conteudo ativa">
+        <div class="escalas-container" id="escalasContainerOficial"></div>
+        <div style="text-align:center;"><button class="btn-salvar" id="btnExportarOficial">📋 VISUALIZAR ESCALA OFICIAL (JSON)</button></div>
+        <div id="outputAreaOficial" class="output">⚡ Clique no botão para ver a escala oficial gerada.</div>
+    </div>
+
+    <!-- Aba Escala Local -->
+    <div id="aba-escala-local" class="aba-conteudo">
+        <div class="escalas-container" id="escalasContainerLocal"></div>
+        <div style="text-align:center;"><button class="btn-salvar" id="btnExportarLocal">📋 VISUALIZAR ESCALA LOCAL (JSON)</button></div>
+        <div id="outputAreaLocal" class="output">⚡ Clique no botão para ver a escala local gerada.</div>
+    </div>
+
+    <!-- Configurações (Tipos de Culto, Regras, Banco de Dados) -->
+    <div id="aba-config" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>🏷️ Tipos de Culto (Códigos)</h3>
+            <div class="tipo-personalizado">
+                <input type="text" id="novoTipoNome" placeholder="Nome (ex: Culto Jovem)" style="flex:2">
+                <input type="text" id="novoTipoCodigo" placeholder="Código (ex: 71)" style="width:80px">
+                <button id="btnAdicionarTipo" class="btn-db btn-db-salvar">Adicionar Tipo</button>
+            </div>
+            <div id="listaTiposCulto" class="lista-tipos"></div>
+            <div class="config-linha"><label>Padrão (dias de semana - código):</label><input type="text" id="cfg_padraoSemana" value="04" maxlength="2"></div>
+            <div class="config-linha"><label>Padrão (domingo - código):</label><input type="text" id="cfg_padraoDomingo" value="02" maxlength="2"></div>
+        </div>
+        <div class="config-painel">
+            <h3>📅 Regras de Culto por Congregação e Semana do Mês</h3>
+            <div class="config-linha">
+                <label>Congregação:</label>
+                <select id="selCongregacaoRegra"></select>
+                <label>Dia da semana:</label>
+                <select id="selDiaRegra">
+                    <option value="segunda">Segunda</option><option value="terca">Terça</option><option value="quarta">Quarta</option>
+                    <option value="quintaManha">Quinta Manhã</option><option value="quintaTarde">Quinta Tarde</option><option value="quintaNoite">Quinta Noite</option>
+                    <option value="sexta">Sexta</option><option value="sabado">Sábado</option>
+                    <option value="domingoManha">Domingo Manhã</option><option value="domingoNoite">Domingo Noite</option>
+                </select>
+                <button id="btnCarregarRegras" class="btn-add-row">Carregar regras</button>
+            </div>
+            <table class="regras-tabela">
+                <thead><tr><th>Tipo Padrão</th><th>1ª Semana</th><th>2ª Semana</th><th>3ª Semana</th><th>4ª Semana</th><th>5ª Semana</th></tr></thead>
+                <tbody><tr>
+                    <td><select id="regraPadrao"><option value="Normal">Normal</option></select></td>
+                    <td><select class="semanaSelect" data-semana="1"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="2"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="3"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="4"><option value="">(usar padrão)</option></select></td>
+                    <td><select class="semanaSelect" data-semana="5"><option value="">(usar padrão)</option></select></td>
+                </tr></tbody>
+            </table>
+            <div style="margin-top: 10px;"><button id="btnSalvarRegras" class="btn-db btn-db-salvar">💾 Salvar regras para esta congregação/dia</button></div>
+            <div class="lista-regras" id="listaRegrasSalvas"></div>
+        </div>
+        <div class="config-painel">
+            <h3>🗄️ Banco de Dados de Escalas (Semanais)</h3>
+            <div class="db-acoes">
+                <button class="btn-db btn-db-salvar" id="dbSalvarOficialBtn">💾 Salvar Escala Oficial</button>
+                <button class="btn-db btn-db-salvar" id="dbSalvarLocalBtn">💾 Salvar Escala Local</button>
+                <button class="btn-db btn-db-novo" id="dbNovaSemanaBtn">📋 Nova Semana em Branco (Oficial)</button>
+                <button class="btn-db btn-aplicar-regras" id="btnAplicarRegrasGerais">🔄 Aplicar regras à semana atual</button>
+            </div>
+            <div class="db-semanas-lista" id="dbSemanasList"></div>
+        </div>
+    </div>
+
+    <!-- Calendário 2026 com filtros -->
+    <div id="aba-calendario" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>📅 Calendário de Eventos - 2026</h3>
+            <div class="form-inline">
+                <input type="date" id="novaDataEvento" placeholder="Data">
+                <input type="text" id="novaDescEvento" placeholder="Descrição do evento">
+                <input type="text" id="novoCCEvento" placeholder="CC (código)" style="width:80px">
+                <select id="novaCongEvento"></select>
+                <button id="btnAdicionarEvento" class="btn-db btn-db-salvar">Adicionar Evento</button>
+            </div>
+            <div class="filtros">
+                <input type="date" id="filtroData" placeholder="Filtrar por data">
+                <input type="text" id="filtroDesc" placeholder="Filtrar por descrição">
+                <input type="text" id="filtroCC" placeholder="Filtrar por CC" style="width:100px">
+                <select id="filtroCong">
+                    <option value="">Todas as congregações</option>
+                </select>
+                <button id="btnFiltrarEventos">🔍 Filtrar</button>
+                <button id="btnLimparFiltros">🗑️ Limpar</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="calendario-tabela" id="tabelaCalendario">
+                    <thead><tr><th>Data</th><th>Descrição</th><th>CC</th><th>Congregação</th><th>Ações</th></tr></thead>
+                    <tbody id="corpoCalendario"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Obreiros com cargos em português completo -->
+    <div id="aba-obreiros" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>👥 Cadastro de Obreiros</h3>
+            <div class="form-inline">
+                <input type="text" id="novoNomeObreiro" placeholder="Nome completo" style="width:300px">
+                <select id="novoCargoObreiro">
+                    <option value="Pr.">Pastor (Pr.)</option>
+                    <option value="Pb.">Presbítero (Pb.)</option>
+                    <option value="Dc.">Diácono (Dc.)</option>
+                    <option value="Aux.">Auxiliar Oficial (Aux.)</option>
+                    <option value="Aux. Local.">Auxiliar Local (Aux. Local.)</option>
+                </select>
+                <select id="novaCongObreiro"></select>
+                <button id="btnAdicionarObreiro" class="btn-db btn-db-salvar">Adicionar Obreiro</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="obreiros-tabela" id="tabelaObreiros">
+                    <thead><tr><th>Nome</th><th>Cargo</th><th>Congregação</th><th>Ações</th></tr></thead>
+                    <tbody id="corpoObreiros"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Congregações -->
+    <div id="aba-congregacoes" class="aba-conteudo">
+        <div class="config-painel">
+            <h3>🏘️ Lista de Congregações</h3>
+            <div class="form-inline">
+                <input type="text" id="novaCongregacao" placeholder="Nome da congregação" style="width:300px">
+                <button id="btnAdicionarCongregacao" class="btn-db btn-db-salvar">Adicionar Congregação</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="congregacoes-tabela" id="tabelaCongregacoes">
+                    <thead><tr><th>Nome</th><th>Ações</th></tr></thead>
+                    <tbody id="corpoCongregacoes"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== DADOS GLOBAIS ====================
+    let obreiros = [];
+    let congregacoes = [];
+    let eventos = [];
+    let tiposCulto = [
+        { nome: "Santa Ceia", codigo: "03" },
+        { nome: "Administrativo", codigo: "05" },
+        { nome: "Mocidade", codigo: "10" },
+        { nome: "PROATI", codigo: "57" }
+    ];
+    let regrasCulto = {};
+
+    // Dados da Escala Oficial (fixos)
+    const dadosFixosOficial = {
+        segunda: [{cong:"Chã do Conselho 01", esc1:"Pb. Leonardo Manoel"},{cong:"Monte das Oliveiras", esc1:"Pb. Pedro José"},{cong:"Av. Brasil", esc1:"Pb. Gilcelio Felipe"},{cong:"Engenho Vinagre", esc1:"Dc. José Anísio"},{cong:"Penedinho", esc1:"Dc. Rodrigo Siqueira"}],
+        terca: [{cong:"Templo Matriz", esc1:"Pr. Severino Guilhermino"}],
+        quarta: [{cong:"Templo Matriz", esc1:"Pb. Herivelton Marculino"},{cong:"Monte das Oliveiras", esc1:"Pb. Pedro José"},{cong:"Monte Carmelo", esc1:"Pb. Elias Alberto"},{cong:"Av. Brasil", esc1:"Pb. Gilcelio Felipe"},{cong:"Nova Canaã", esc1:"Pb. Edmilson Clemente"},{cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},{cong:"Quinze", esc1:"Pb. Antônio Alexandre"},{cong:"Lot. Bom Jesus", esc1:"Pb. Marcos Henrique"},{cong:"Belo Oriente", esc1:"Pb. Ednaldo Antônio"},{cong:"Jardim Nova Esperança", esc1:"Dc. Nílson Carlos"},{cong:"Engenho Vinagre"},{cong:"Três Ladeiras", esc1:"Dc. Murilo Henrique"},{cong:"Vila Canaã"},{cong:"Caraú", esc1:"Aux. Genival Severino"},{cong:"Penedinho", esc1:"Dc. Rodrigo Siqueira"},{cong:"Chã do Conselho 01", esc1:"Dc. Marcos Cavalcante"},{cong:"Chã do Conselho 02", esc1:"Pb. Leonardo Manoel"},{cong:"Lot. Fontes de Aldeia", esc1:"Pb. Otoniel Luiz"},{cong:"Alto Planalto", esc1:"Dc. Zequias Alves"},{cong:"Itaboraí", esc1:"Pb. Rogério Brito"}],
+        quintaManha: [{cong:"Templo Matriz", esc1:"Pb. Ednaldo Antônio"}],
+        quintaTarde: [{cong:"Templo Matriz", esc1:"Pb. Ednaldo Antônio"}],
+        quintaNoite: [{cong:"Quinze", esc1:"Pb. Antônio Alexandre"},{cong:"Três Ladeiras", esc1:"Dc. Murilo Henrique"},{cong:"Belo Oriente", esc1:"Pb. Ednaldo Antônio"},{cong:"Nova Canaã", esc1:"Pb. Edmilson Clemente"},{cong:"Lot. Fontes de Aldeia", esc1:"Pb. Otoniel Luiz"},{cong:"Lot. Bom Jesus", esc1:"Pb. Marcos Henrique"},{cong:"Itaboraí", esc1:"Pb. Rogério Brito"}],
+        sexta: [{cong:"Monte Carmelo", esc1:"Pb. Elias Alberto"},{cong:"Jardim Nova Esperança", esc1:"Dc. Nílson Carlos"},{cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},{cong:"Alto Planalto", esc1:"Dc. Zequias Alves"},{cong:"Vila Canaã", esc1:"Dc. José Anísio"},{cong:"Chã do Conselho 02", esc1:"Pb. Leonardo Manoel"}],
+        sabado: [{cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},{cong:"Três Ladeiras", esc1:"EBDA - ESCOLA BÍBLICA DOMINICAL ANIMADA"}],
+        domingoManha: [],
+        domingoNoite: [{cong:"Templo Matriz", esc1:"Pr. Severino Guilhermino"},{cong:"Monte das Oliveiras", esc1:"Pb. Pedro José"},{cong:"Monte Carmelo", esc1:"Pb. Elias Alberto"},{cong:"Av. Brasil", esc1:"Pb. Gilcelio Felipe"},{cong:"Nova Canaã", esc1:"Pb. Edmilson Clemente"},{cong:"Itapipiré", esc1:"Pb. Amauri Pereira"},{cong:"Quinze", esc1:"Pb. Antônio Alexandre"},{cong:"Lot. Bom Jesus", esc1:"Pb. Marcos Henrique"},{cong:"Belo Oriente", esc1:"Pb. Ednaldo Antônio"},{cong:"Jardim Nova Esperança", esc1:"Dc. Nílson Carlos"},{cong:"Engenho Vinagre", esc1:"Dc. Antônio Neto"},{cong:"Três Ladeiras", esc1:"Dc. Murilo Henrique"},{cong:"Vila Canaã", esc1:"Dc. José Anísio"},{cong:"Caraú", esc1:"Aux. Genival Severino"},{cong:"Penedinho", esc1:"Dc. Rodrigo Siqueira"},{cong:"Chã do Conselho 01", esc1:"Pb. Leonardo Manoel"},{cong:"Chã do Conselho 02", esc1:"Dc. Samuel Amaro"},{cong:"Lot. Fontes de Aldeia", esc1:"Pb. Otoniel Luiz"},{cong:"Alto Planalto", esc1:"Dc. Zequias Alves"},{cong:"Itaboraí", esc1:"Pb. Rogério Brito"}]
+    };
+    let escalaLocal = { // inicialmente vazia
+        segunda: [], terca: [], quarta: [], quintaManha: [], quintaTarde: [], quintaNoite: [], sexta: [], sabado: [], domingoManha: [], domingoNoite: []
+    };
+
+    // Funções de persistência
+    function salvarTodosDados() {
+        localStorage.setItem("ieadpe_tipos_culto", JSON.stringify(tiposCulto));
+        localStorage.setItem("ieadpe_regras_culto", JSON.stringify(regrasCulto));
+        localStorage.setItem("ieadpe_obreiros", JSON.stringify(obreiros));
+        localStorage.setItem("ieadpe_congregacoes", JSON.stringify(congregacoes));
+        localStorage.setItem("ieadpe_eventos", JSON.stringify(eventos));
+        localStorage.setItem("ieadpe_escala_local", JSON.stringify(escalaLocal));
+    }
+    function carregarTodosDados() {
+        const savedTipos = localStorage.getItem("ieadpe_tipos_culto");
+        if (savedTipos) tiposCulto = JSON.parse(savedTipos);
+        const savedRegras = localStorage.getItem("ieadpe_regras_culto");
+        if (savedRegras) regrasCulto = JSON.parse(savedRegras);
+        const savedObreiros = localStorage.getItem("ieadpe_obreiros");
+        if (savedObreiros) obreiros = JSON.parse(savedObreiros);
+        const savedCong = localStorage.getItem("ieadpe_congregacoes");
+        if (savedCong) congregacoes = JSON.parse(savedCong);
+        const savedEventos = localStorage.getItem("ieadpe_eventos");
+        if (savedEventos) eventos = JSON.parse(savedEventos);
+        const savedLocal = localStorage.getItem("ieadpe_escala_local");
+        if (savedLocal) escalaLocal = JSON.parse(savedLocal);
+    }
+
+    function popularDadosIniciais() {
+        if (localStorage.getItem("ieadpe_obreiros") === null) {
+            // Obreiros iniciais com cargos completos
+            obreiros = [
+                { nome: "Severino Guilhermino", cargo: "Pr.", congregacao: "Templo Matriz" },
+                { nome: "Amauri Pereira", cargo: "Pb.", congregacao: "Av. Brasil" },
+                { nome: "Ednaldo Antônio", cargo: "Pb.", congregacao: "Belo Oriente" },
+                { nome: "Edmilson Clemente", cargo: "Pb.", congregacao: "Nova Canaã" },
+                { nome: "Givanildo Olímpio", cargo: "Dc.", congregacao: "Alto Planalto" },
+                { nome: "José Anísio", cargo: "Dc.", congregacao: "Belo Oriente" },
+                { nome: "Severino Gomes", cargo: "Aux.", congregacao: "Alto Planalto" },
+                { nome: "Roberto Joaquim", cargo: "Aux. Local.", congregacao: "Alto Planalto" }
+            ];
+            congregacoes = ["Templo Matriz","Monte das Oliveiras","Monte Carmelo","Av. Brasil","Nova Canaã","Itapipiré","Quinze","Lot. Bom Jesus","Belo Oriente","Jardim Nova Esperança","Engenho Vinagre","Três Ladeiras","Vila Canaã","Caraú","Penedinho","Chã do Conselho 01","Chã do Conselho 02","Lot. Fontes de Aldeia","Alto Planalto","Itaboraí"];
+            eventos = carregarEventosCalendario();
+            salvarTodosDados();
+        } else {
+            carregarTodosDados();
+        }
+    }
+
+    function carregarEventosCalendario() {
+        // Versão resumida dos eventos (mais de 200, mas aqui apenas alguns exemplos)
+        return [
+            { data: "2026-01-01", descricao: "JANEIRO", cc: "", congregacao: "-" },
+            { data: "2026-01-10", descricao: "Carreata Evangelística", cc: "", congregacao: "BELO ORIENTE" },
+            { data: "2026-01-11", descricao: "Formatura do Discipulado", cc: "", congregacao: "MATRIZ" },
+            { data: "2026-02-05", descricao: "Aniversário do C.O", cc: "15", congregacao: "NOVA ESPERANÇA" },
+            { data: "2026-03-14", descricao: "Aniversário do C.O.I", cc: "09", congregacao: "LOT. FONTES DE ALDEIA" },
+            { data: "2026-04-14", descricao: "Santa Ceia", cc: "", congregacao: "MATRIZ" },
+            { data: "2026-12-24", descricao: "CULTO NATALINO", cc: "", congregacao: "MATRIZ" }
+        ];
+    }
+
+    // Mapeamento de cargo para exibição
+    function cargoParaExibicao(cargo) {
+        const map = {
+            "Pr.": "Pastor (Pr.)",
+            "Pb.": "Presbítero (Pb.)",
+            "Dc.": "Diácono (Dc.)",
+            "Aux.": "Auxiliar Oficial (Aux.)",
+            "Aux. Local.": "Auxiliar Local (Aux. Local.)"
+        };
+        return map[cargo] || cargo;
+    }
+
+    // ==================== FUNÇÕES DE ESCALA (GENÉRICAS) ====================
+    function criarSelectsEscalados(valor1="", valor2="", valor3="") {
+        const container = document.createElement("div"); container.style.display = "flex"; container.style.gap = "4px"; container.style.flexWrap = "wrap";
+        const makeSelect = (valor) => {
+            const select = document.createElement("select");
+            select.appendChild(new Option("─", ""));
+            obreiros.forEach(ob => { const nomeCompleto = `${cargoParaExibicao(ob.cargo)} ${ob.nome}`; select.appendChild(new Option(nomeCompleto, nomeCompleto)); if (nomeCompleto === valor) select.value = valor; });
+            select.style.flex = "1"; select.style.minWidth = "110px";
+            return select;
+        };
+        container.appendChild(makeSelect(valor1)); container.appendChild(makeSelect(valor2)); container.appendChild(makeSelect(valor3));
+        return container;
+    }
+
+    function criarLinha(item, diaId, editavel = false) {
+        const tr = document.createElement("tr");
+        const tdCong = document.createElement("td"); tdCong.className = "cong-nome";
+        if (editavel) {
+            const input = document.createElement("input"); input.placeholder = "Nova congregação"; input.style.width = "100%"; input.value = item.cong || "";
+            input.addEventListener("change", () => { if (input.value.trim()) aplicarRegrasNaSemana(); });
+            tdCong.appendChild(input);
+        } else tdCong.textContent = item.cong || "";
+        tr.appendChild(tdCong);
+        const tdCod = document.createElement("td"); tdCod.className = "codigo"; tdCod.textContent = item.cod || "";
+        tr.appendChild(tdCod);
+        const tdEsc = document.createElement("td"); tdEsc.className = "escalados-cell";
+        tdEsc.appendChild(criarSelectsEscalados(item.esc1 || "", item.esc2 || "", item.esc3 || ""));
+        tr.appendChild(tdEsc);
+        const tdBtn = document.createElement("td"); tdBtn.style.textAlign = "center";
+        const btnRem = document.createElement("button"); btnRem.textContent = "🗑️"; btnRem.style.background = "none"; btnRem.style.border = "none"; btnRem.style.cursor = "pointer";
+        btnRem.onclick = () => tr.remove();
+        tdBtn.appendChild(btnRem);
+        tr.appendChild(tdBtn);
+        return tr;
+    }
+
+    function preencherTabela(tabId, dados, diaId, editavel = false) {
+        const tbody = document.querySelector(`#${tabId} tbody`);
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        dados.forEach(item => { const tr = criarLinha({ ...item, editavel }, diaId); tbody.appendChild(tr); });
+        aplicarRegrasNaSemana();
+    }
+
+    window.adicionarLinha = function(dia, tipo) {
+        const tabId = `tab-${tipo}-${dia}`;
+        const tbody = document.querySelector(`#${tabId} tbody`);
+        if (!tbody) return;
+        const tr = criarLinha({ cong: "", cod: "", esc1: "", esc2: "", esc3: "", editavel: true }, dia, true);
+        tbody.appendChild(tr);
+        const inputCong = tr.cells[0].querySelector("input");
+        if (inputCong) inputCong.addEventListener("change", () => aplicarRegrasNaSemana());
+    };
+
+    function obterCodigoDoTipo(tipoNome, isDomingo) {
+        if (tipoNome === "Normal") {
+            const cfgSemana = document.getElementById("cfg_padraoSemana")?.value || "04";
+            const cfgDomingo = document.getElementById("cfg_padraoDomingo")?.value || "02";
+            return isDomingo ? cfgDomingo : cfgSemana;
+        }
+        const tipo = tiposCulto.find(t => t.nome === tipoNome);
+        return tipo ? tipo.codigo : "00";
+    }
+
+    function getSemanaNumero(data) {
+        const primeiroDiaMes = new Date(data.getFullYear(), data.getMonth(), 1);
+        const offset = (data.getDate() + primeiroDiaMes.getDay()) / 7;
+        return Math.ceil(offset);
+    }
+
+    function obterTipoPorRegra(congregacao, dia, numeroSemana) {
+        if (!regrasCulto[congregacao] || !regrasCulto[congregacao][dia]) return "Normal";
+        const reg = regrasCulto[congregacao][dia];
+        if (reg.excecoes && reg.excecoes[numeroSemana]) return reg.excecoes[numeroSemana];
+        return reg.padrao || "Normal";
+    }
+
+    function aplicarRegrasNaSemana() {
+        const dataInicioStr = document.getElementById("dataInicio").value;
+        if (!dataInicioStr) return;
+        const [ano, mes, dia] = dataInicioStr.split('-').map(Number);
+        const dataBase = new Date(ano, mes-1, dia);
+        const diasMap = {
+            "segunda":0, "terca":1, "quarta":2, "quintaManha":3, "quintaTarde":3, "quintaNoite":3,
+            "sexta":4, "sabado":5, "domingoManha":6, "domingoNoite":6
+        };
+        for (let [diaId, offset] of Object.entries(diasMap)) {
+            let dataDia = new Date(dataBase);
+            dataDia.setDate(dataBase.getDate() + offset);
+            const numSemana = getSemanaNumero(dataDia);
+            const tbodyOficial = document.querySelector(`#tab-oficial-${diaId} tbody`);
+            if (tbodyOficial) {
+                tbodyOficial.querySelectorAll("tr").forEach(tr => {
+                    let congregacao = tr.cells[0].querySelector("input") ? tr.cells[0].querySelector("input").value : tr.cells[0].innerText;
+                    if (!congregacao || congregacao.trim() === "") return;
+                    const isDomingo = (diaId === "domingoManha" || diaId === "domingoNoite");
+                    const novoTipo = obterTipoPorRegra(congregacao.trim(), diaId, numSemana);
+                    const codigo = obterCodigoDoTipo(novoTipo, isDomingo);
+                    tr.cells[1].textContent = codigo;
+                });
+            }
+            const tbodyLocal = document.querySelector(`#tab-local-${diaId} tbody`);
+            if (tbodyLocal) {
+                tbodyLocal.querySelectorAll("tr").forEach(tr => {
+                    let congregacao = tr.cells[0].querySelector("input") ? tr.cells[0].querySelector("input").value : tr.cells[0].innerText;
+                    if (!congregacao || congregacao.trim() === "") return;
+                    const isDomingo = (diaId === "domingoManha" || diaId === "domingoNoite");
+                    const novoTipo = obterTipoPorRegra(congregacao.trim(), diaId, numSemana);
+                    const codigo = obterCodigoDoTipo(novoTipo, isDomingo);
+                    tr.cells[1].textContent = codigo;
+                });
+            }
+        }
+        mostrarToast("✅ Regras aplicadas à semana atual!");
+    }
+
+    function atualizarDatas() {
+        const dataInicioStr = document.getElementById("dataInicio").value;
+        if (!dataInicioStr) return;
+        const [ano, mes, dia] = dataInicioStr.split('-').map(Number);
+        const data = new Date(ano, mes-1, dia);
+        const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+        const nomes = ["Segunda","Terça","Quarta","Quinta Manhã","Quinta Tarde","Quinta Noite","Sexta","Sábado","Domingo","Domingo"];
+        for (let i=0; i<dias.length; i++) {
+            let dt = new Date(data); dt.setDate(data.getDate() + (i<6 ? i : i-2));
+            const spanOficial = document.getElementById(`data-oficial-${dias[i]}`);
+            if (spanOficial) spanOficial.textContent = `${nomes[i]} ${dt.toLocaleDateString('pt-BR')}`;
+            const spanLocal = document.getElementById(`data-local-${dias[i]}`);
+            if (spanLocal) spanLocal.textContent = `${nomes[i]} ${dt.toLocaleDateString('pt-BR')}`;
+        }
+        aplicarRegrasNaSemana();
+    }
+
+    function inicializarTabelas(tipo, dados, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        const diasLista = [
+            { id: "segunda", titulo: "SEGUNDA-FEIRA - NOITE" },{ id: "terca", titulo: "TERÇA-FEIRA - NOITE" },{ id: "quarta", titulo: "QUARTA-FEIRA" },
+            { id: "quintaManha", titulo: "QUINTA-FEIRA - MANHÃ" },{ id: "quintaTarde", titulo: "QUINTA-FEIRA - TARDE" },{ id: "quintaNoite", titulo: "QUINTA-FEIRA - NOITE" },
+            { id: "sexta", titulo: "SEXTA-FEIRA - NOITE" },{ id: "sabado", titulo: "SÁBADO - NOITE" },{ id: "domingoManha", titulo: "DOMINGO - MANHÃ" },{ id: "domingoNoite", titulo: "DOMINGO - NOITE" }
+        ];
+        diasLista.forEach(dia => {
+            const section = document.createElement("div"); section.className = "day-section";
+            const titleDiv = document.createElement("div"); titleDiv.className = "day-title";
+            titleDiv.innerHTML = `${dia.titulo} <span class="day-date" id="data-${tipo}-${dia.id}"></span>`;
+            section.appendChild(titleDiv);
+            const table = document.createElement("table"); table.id = `tab-${tipo}-${dia.id}`;
+            table.innerHTML = `<thead><tr><th>CONGREGAÇÃO</th><th>CÓDIGO</th><th>ESCALADOS</th><th></th></tr></thead><tbody></tbody>`;
+            section.appendChild(table);
+            const btnDiv = document.createElement("div"); btnDiv.style.padding = "6px";
+            const btn = document.createElement("button"); btn.className = "btn-add-row"; btn.textContent = "+ Adicionar congregação"; btn.onclick = () => window.adicionarLinha(dia.id, tipo);
+            btnDiv.appendChild(btn);
+            section.appendChild(btnDiv);
+            container.appendChild(section);
+            if (dados[dia.id]) preencherTabela(`tab-${tipo}-${dia.id}`, dados[dia.id], dia.id, false);
+            else preencherTabela(`tab-${tipo}-${dia.id}`, [], dia.id, false);
+        });
+    }
+
+    // ==================== CALENDÁRIO COM FILTROS ====================
+    let eventosFiltrados = [];
+    function renderizarCalendario() {
+        const tbody = document.getElementById("corpoCalendario");
+        tbody.innerHTML = "";
+        eventosFiltrados.forEach((ev, idx) => {
+            const tr = document.createElement("tr");
+            const dataFormatada = new Date(ev.data).toLocaleDateString('pt-BR');
+            tr.innerHTML = `
+                <td>${dataFormatada}</td>
+                <td>${ev.descricao}</td>
+                <td>${ev.cc || ""}</td>
+                <td>${ev.congregacao}</td>
+                <td><button class="btn-editar" data-idx="${idx}" data-tipo="evento">✏️ Editar</button>
+                    <button class="btn-excluir" data-idx="${idx}" data-tipo="evento">🗑️ Excluir</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='evento']").forEach(btn => {
+            btn.removeEventListener('click', handleEditarEvento);
+            btn.addEventListener('click', handleEditarEvento);
+        });
+        document.querySelectorAll(".btn-excluir[data-tipo='evento']").forEach(btn => {
+            btn.removeEventListener('click', handleExcluirEvento);
+            btn.addEventListener('click', handleExcluirEvento);
+        });
+    }
+    function handleEditarEvento(e) {
+        const idx = parseInt(e.currentTarget.getAttribute("data-idx"));
+        const ev = eventosFiltrados[idx];
+        const originalIdx = eventos.findIndex(e => e.data === ev.data && e.descricao === ev.descricao && e.cc === ev.cc && e.congregacao === ev.congregacao);
+        if (originalIdx === -1) return;
+        const novaData = prompt("Nova data (AAAA-MM-DD):", ev.data);
+        const novaDesc = prompt("Nova descrição:", ev.descricao);
+        const novoCC = prompt("Novo CC:", ev.cc);
+        const novaCong = prompt("Nova congregação:", ev.congregacao);
+        if (novaData) eventos[originalIdx].data = novaData;
+        if (novaDesc) eventos[originalIdx].descricao = novaDesc;
+        if (novoCC !== null) eventos[originalIdx].cc = novoCC;
+        if (novaCong) eventos[originalIdx].congregacao = novaCong;
+        salvarTodosDados();
+        aplicarFiltros();
+        renderizarCalendario();
+        mostrarToast("Evento atualizado!");
+    }
+    function handleExcluirEvento(e) {
+        const idx = parseInt(e.currentTarget.getAttribute("data-idx"));
+        const ev = eventosFiltrados[idx];
+        const originalIdx = eventos.findIndex(e => e.data === ev.data && e.descricao === ev.descricao && e.cc === ev.cc && e.congregacao === ev.congregacao);
+        if (originalIdx !== -1 && confirm("Excluir este evento?")) {
+            eventos.splice(originalIdx, 1);
+            salvarTodosDados();
+            aplicarFiltros();
+            renderizarCalendario();
+            mostrarToast("Evento excluído!");
+        }
+    }
+    function adicionarEvento() {
+        const data = document.getElementById("novaDataEvento").value;
+        const descricao = document.getElementById("novaDescEvento").value.trim();
+        const cc = document.getElementById("novoCCEvento").value.trim();
+        const congregacao = document.getElementById("novaCongEvento").value;
+        if (!data || !descricao) { alert("Preencha data e descrição."); return; }
+        eventos.push({ data, descricao, cc, congregacao });
+        salvarTodosDados();
+        aplicarFiltros();
+        renderizarCalendario();
+        mostrarToast("Evento adicionado!");
+        document.getElementById("novaDataEvento").value = "";
+        document.getElementById("novaDescEvento").value = "";
+        document.getElementById("novoCCEvento").value = "";
+    }
+    function aplicarFiltros() {
+        const filtroData = document.getElementById("filtroData").value;
+        const filtroDesc = document.getElementById("filtroDesc").value.toLowerCase();
+        const filtroCC = document.getElementById("filtroCC").value.toLowerCase();
+        const filtroCong = document.getElementById("filtroCong").value;
+        eventosFiltrados = eventos.filter(ev => {
+            if (filtroData && ev.data !== filtroData) return false;
+            if (filtroDesc && !ev.descricao.toLowerCase().includes(filtroDesc)) return false;
+            if (filtroCC && !ev.cc.toLowerCase().includes(filtroCC)) return false;
+            if (filtroCong && ev.congregacao !== filtroCong) return false;
+            return true;
+        });
+        renderizarCalendario();
+    }
+    function limparFiltros() {
+        document.getElementById("filtroData").value = "";
+        document.getElementById("filtroDesc").value = "";
+        document.getElementById("filtroCC").value = "";
+        document.getElementById("filtroCong").value = "";
+        aplicarFiltros();
+    }
+
+    // ==================== OBREIROS ====================
+    function renderizarObreiros() {
+        const tbody = document.getElementById("corpoObreiros");
+        tbody.innerHTML = "";
+        obreiros.forEach((ob, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${ob.nome}</td>
+                <td>${cargoParaExibicao(ob.cargo)}</td>
+                <td>${ob.congregacao}</td>
+                <td><button class="btn-editar" data-idx="${idx}" data-tipo="obreiro">✏️ Editar</button>
+                    <button class="btn-excluir" data-idx="${idx}" data-tipo="obreiro">🗑️ Excluir</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='obreiro']").forEach(btn => {
+            btn.removeEventListener('click', handleEditarObreiro);
+            btn.addEventListener('click', handleEditarObreiro);
+        });
+        document.querySelectorAll(".btn-excluir[data-tipo='obreiro']").forEach(btn => {
+            btn.removeEventListener('click', handleExcluirObreiro);
+            btn.addEventListener('click', handleExcluirObreiro);
+        });
+        // Atualizar selects em todas as escalas
+        document.querySelectorAll(".escalados-cell select").forEach(select => {
+            const valorAtual = select.value;
+            select.innerHTML = '<option value="">─</option>';
+            obreiros.forEach(ob => { const nomeCompleto = `${cargoParaExibicao(ob.cargo)} ${ob.nome}`; select.appendChild(new Option(nomeCompleto, nomeCompleto)); if (nomeCompleto === valorAtual) select.value = valorAtual; });
+        });
+    }
+    function handleEditarObreiro(e) {
+        const idx = parseInt(e.currentTarget.getAttribute("data-idx"));
+        const ob = obreiros[idx];
+        const novoNome = prompt("Novo nome:", ob.nome);
+        const novoCargo = prompt("Novo cargo (Pr./Pb./Dc./Aux./Aux. Local.):", ob.cargo);
+        const novaCong = prompt("Nova congregação:", ob.congregacao);
+        if (novoNome) ob.nome = novoNome;
+        if (novoCargo) ob.cargo = novoCargo;
+        if (novaCong) ob.congregacao = novaCong;
+        salvarTodosDados();
+        renderizarObreiros();
+        mostrarToast("Obreiro atualizado!");
+    }
+    function handleExcluirObreiro(e) {
+        const idx = parseInt(e.currentTarget.getAttribute("data-idx"));
+        if (confirm("Excluir este obreiro?")) {
+            obreiros.splice(idx, 1);
+            salvarTodosDados();
+            renderizarObreiros();
+            mostrarToast("Obreiro excluído!");
+        }
+    }
+    function adicionarObreiro() {
+        const nome = document.getElementById("novoNomeObreiro").value.trim();
+        const cargo = document.getElementById("novoCargoObreiro").value;
+        const congregacao = document.getElementById("novaCongObreiro").value;
+        if (!nome) { alert("Preencha o nome."); return; }
+        obreiros.push({ nome, cargo, congregacao });
+        salvarTodosDados();
+        renderizarObreiros();
+        mostrarToast("Obreiro adicionado!");
+        document.getElementById("novoNomeObreiro").value = "";
+    }
+
+    // ==================== CONGREGAÇÕES ====================
+    function renderizarCongregacoes() {
+        const tbody = document.getElementById("corpoCongregacoes");
+        tbody.innerHTML = "";
+        congregacoes.forEach((cong, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${cong}</td>
+                <td><button class="btn-editar" data-idx="${idx}" data-tipo="cong">✏️ Editar</button>
+                    <button class="btn-excluir" data-idx="${idx}" data-tipo="cong">🗑️ Excluir</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-editar[data-tipo='cong']").forEach(btn => {
+            btn.removeEventListener('click', handleEditarCongregacao);
+            btn.addEventListener('click', handleEditarCongregacao);
+        });
+        document.querySelectorAll(".btn-excluir[data-tipo='cong']").forEach(btn => {
+            btn.removeEventListener('click', handleExcluirCongregacao);
+            btn.addEventListener('click', handleExcluirCongregacao);
+        });
+        const selectsCong = document.querySelectorAll("#selCongregacaoRegra, #novaCongEvento, #novaCongObreiro, #filtroCong");
+        selectsCong.forEach(select => {
+            const valorAtual = select.value;
+            select.innerHTML = "<option value=''>Todas as congregações</option>";
+            congregacoes.forEach(c => { const opt = document.createElement("option"); opt.value = c; opt.textContent = c; if (c === valorAtual) opt.selected = true; select.appendChild(opt); });
+        });
+    }
+    function handleEditarCongregacao(e) {
+        const idx = parseInt(e.currentTarget.getAttribute("data-idx"));
+        const novoNome = prompt("Novo nome:", congregacoes[idx]);
+        if (novoNome && !congregacoes.includes(novoNome)) {
+            congregacoes[idx] = novoNome;
+            salvarTodosDados();
+            renderizarCongregacoes();
+            mostrarToast("Congregação atualizada!");
+        } else if (novoNome) alert("Nome já existe.");
+    }
+    function handleExcluirCongregacao(e) {
+        const idx = parseInt(e.currentTarget.getAttribute("data-idx"));
+        if (confirm("Excluir esta congregação?")) {
+            congregacoes.splice(idx, 1);
+            salvarTodosDados();
+            renderizarCongregacoes();
+            mostrarToast("Congregação excluída!");
+        }
+    }
+    function adicionarCongregacao() {
+        const nome = document.getElementById("novaCongregacao").value.trim();
+        if (!nome) { alert("Preencha o nome."); return; }
+        if (congregacoes.includes(nome)) { alert("Congregação já existe."); return; }
+        congregacoes.push(nome);
+        salvarTodosDados();
+        renderizarCongregacoes();
+        mostrarToast("Congregação adicionada!");
+        document.getElementById("novaCongregacao").value = "";
+    }
+
+    // ==================== BANCO DE DADOS DE ESCALAS ====================
+    function coletarEscala(tipo) {
+        const escala = {};
+        const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+        for (let dia of dias) {
+            const tbody = document.querySelector(`#tab-${tipo}-${dia} tbody`);
+            if (!tbody) continue;
+            escala[dia] = [];
+            tbody.querySelectorAll("tr").forEach(tr => {
+                const congregacao = tr.cells[0].querySelector("input") ? tr.cells[0].querySelector("input").value : tr.cells[0].innerText;
+                const codigo = tr.cells[1].innerText;
+                const escalados = Array.from(tr.cells[2].querySelectorAll("select")).map(s=>s.value).filter(v=>v);
+                escala[dia].push({ congregacao, codigo, escalados });
+            });
+        }
+        return escala;
+    }
+    function dbSalvar(tipo) {
+        const semana = document.getElementById("dataInicio").value;
+        if(!semana) return;
+        const escala = coletarEscala(tipo);
+        localStorage.setItem(`ieadpe_escala_${tipo}_${semana}`, JSON.stringify({semana, escala}));
+        mostrarToast(`Escala ${tipo} da semana salva`);
+        dbRenderizarLista();
+    }
+    function dbCarregar(semana, tipo) {
+        const raw = localStorage.getItem(`ieadpe_escala_${tipo}_${semana}`);
+        if(!raw) return;
+        const reg = JSON.parse(raw);
+        document.getElementById("dataInicio").value = semana;
+        atualizarDatas();
+        for(let dia of Object.keys(reg.escala)){
+            const dados = reg.escala[dia].map(i=>({cong:i.congregacao, cod:i.codigo, esc1:i.escalados?.[0]||"", esc2:i.escalados?.[1]||"", esc3:i.escalados?.[2]||""}));
+            preencherTabela(`tab-${tipo}-${dia}`, dados, dia, false);
+        }
+        mostrarToast(`Escala ${tipo} ${semana} carregada`);
+    }
+    function dbRenderizarLista() {
+        const container = document.getElementById("dbSemanasList");
+        container.innerHTML = "";
+        const semanas = new Set();
+        for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i); if(k?.startsWith("ieadpe_escala_")) semanas.add(k.split("_")[3]);}
+        Array.from(semanas).sort().reverse().forEach(sem=>{
+            const tag=document.createElement("div");tag.className="semana-tag";
+            tag.innerHTML=`📅 ${sem.split('-').reverse().join('/')} <span class="del-tag">✕</span>`;
+            tag.querySelector('.del-tag').addEventListener('click',(e)=>{e.stopPropagation();localStorage.removeItem(`ieadpe_escala_oficial_${sem}`);localStorage.removeItem(`ieadpe_escala_local_${sem}`);dbRenderizarLista();mostrarToast("Excluída");});
+            tag.addEventListener('click',()=>{dbCarregar(sem,"oficial");dbCarregar(sem,"local");});
+            container.appendChild(tag);
+        });
+    }
+
+    function mostrarToast(msg) { const t=document.createElement('div'); t.className='toast-ok'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
+
+    // ==================== INICIALIZAÇÃO ====================
+    window.onload = () => {
+        popularDadosIniciais();
+        inicializarTabelas("oficial", dadosFixosOficial, "escalasContainerOficial");
+        inicializarTabelas("local", escalaLocal, "escalasContainerLocal");
+        atualizarDatas();
+        renderizarCalendario();
+        renderizarObreiros();
+        renderizarCongregacoes();
+        // Configurar eventos
+        document.getElementById("atualizarDatas").addEventListener("click", atualizarDatas);
+        document.getElementById("btnAplicarRegrasGerais").addEventListener("click", aplicarRegrasNaSemana);
+        document.getElementById("btnAdicionarEvento").addEventListener("click", adicionarEvento);
+        document.getElementById("btnFiltrarEventos").addEventListener("click", aplicarFiltros);
+        document.getElementById("btnLimparFiltros").addEventListener("click", limparFiltros);
+        document.getElementById("btnAdicionarObreiro").addEventListener("click", adicionarObreiro);
+        document.getElementById("btnAdicionarCongregacao").addEventListener("click", adicionarCongregacao);
+        document.getElementById("dbSalvarOficialBtn").addEventListener("click", () => dbSalvar("oficial"));
+        document.getElementById("dbSalvarLocalBtn").addEventListener("click", () => dbSalvar("local"));
+        document.getElementById("dbNovaSemanaBtn").addEventListener("click", () => {
+            if(confirm("Nova semana em branco para Escala Oficial?")) {
+                const dias = ["segunda","terca","quarta","quintaManha","quintaTarde","quintaNoite","sexta","sabado","domingoManha","domingoNoite"];
+                for(let dia of dias) preencherTabela(`tab-oficial-${dia}`, [], dia);
+                mostrarToast("Nova semana oficial em branco");
+            }
+        });
+        document.getElementById("btnExportarOficial").addEventListener("click", () => { const escala = coletarEscala("oficial"); document.getElementById("outputAreaOficial").innerHTML = "<pre>" + JSON.stringify(escala, null, 2) + "</pre>"; });
+        document.getElementById("btnExportarLocal").addEventListener("click", () => { const escala = coletarEscala("local"); document.getElementById("outputAreaLocal").innerHTML = "<pre>" + JSON.stringify(escala, null, 2) + "</pre>"; });
+        dbRenderizarLista();
+        // Abas
+        document.querySelectorAll('.aba-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.aba-btn').forEach(b=>b.classList.remove('ativa'));document.querySelectorAll('.aba-conteudo').forEach(c=>c.classList.remove('ativa'));btn.classList.add('ativa');document.getElementById(`aba-${btn.getAttribute('data-aba')}`).classList.add('ativa');});});
+        // Inicializar filtros
+        aplicarFiltros();
+    };
+</script>
+</body>
+</html>

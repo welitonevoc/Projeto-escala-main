@@ -1,0 +1,6 @@
+{
+  "name": "Sistema de Escalas IEADPE - Google Sheets DB",
+  "description": "Gerenciador de escalas oficiais e locais com sincronização em tempo real com Google Planilhas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ieadpe-blue: #0d4a8a;
+  --color-ieadpe-dark: #0e3d6e;
+  --color-ieadpe-border: #c5daf0;
+  --color-page-bg: #eef3f9;
+}
+
+.menu-fixo {
+    position: sticky;
+    top: 0;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    padding: 10px 20px;
+    border-bottom: 2px solid #1a5fa0;
+}
+
+.abas {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+body {
+    font-family: 'Segoe UI', 'Roboto', 'Calibri', sans-serif;
+    background: #eef3f9;
+    margin: 0;
+    padding: 0;
+    color: #0a2a4a;
+}
+
+.container-app {
+    max-width: 1600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    padding: 24px 20px 30px 20px;
+    border-top: 6px solid #1a5fa0;
+}
+
+.codigos-painel-topo {
+    background: #f5f9ff;
+    border-radius: 20px;
+    border: 1px solid #c5daf0;
+    padding: 12px 15px;
+    margin-bottom: 25px;
+}
+
+.codigos-painel-topo h3 {
+    background: #0d4a8a;
+    color: white;
+    margin: -12px -15px 12px -15px;
+    padding: 8px;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    font-size: 0.95rem;
+    position: sticky;
+    top: -12px;
+}
+
+.grid-codigos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 6px;
+    font-size: 0.75rem;
+}
+
+.cod-item {
+    background: white;
+    border-left: 3px solid #1a5fa0;
+    padding: 4px 6px;
+    border-radius: 8px;
+}
+
+.day-section {
+    margin-bottom: 35px;
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid #c5daf0;
+    overflow: hidden;
+}
+
+.day-title {
+    background: #0d4a8a;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border-left: 8px solid #1a70b8;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.day-date {
+    font-size: 0.8rem;
+    font-weight: normal;
+    background: #1a5a9a;
+    padding: 4px 12px;
+    border-radius: 30px;
+}
+
+.aba-btn {
+    background: #e6f0fa;
+    border: none;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    color: #0d3d7a;
+    transition: 0.2s;
+    border-radius: 30px;
+    margin: 0 4px;
+}
+
+.aba-btn.ativa {
+    background: #0d4a8a;
+    color: white;
+}
+
+.db-painel {
+    background: #f0f6ff;
+    border: 2px solid #1a5fa0;
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+}
+
+.db-painel h3 {
+    background: #0d4a8a;
+    color: white;
+    margin: -16px -18px 14px -18px;
+    padding: 10px 16px;
+    border-radius: 14px 14px 0 0;
+    font-size: 0.97rem;
+}
+
+.semana-tag {
+    background: white;
+    border: 1.5px solid #1a5fa0;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.semana-tag.ativa { background: #0d4a8a; color: white; border-color: #0d4a8a; }
+
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    body { background: white !important; padding: 0; margin: 0; }
+    .container-app { max-width: 100% !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+    .no-print, .menu-fixo, .aba-btn, button, input[type="date"], .codigos-painel-topo h3.no-print { display: none !important; }
+    .day-section { page-break-inside: avoid; border-radius: 0; border-color: #ddd; margin-bottom: 20px; }
+    .day-title { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #0d4a8a !important; color: white !important; }
+    .grid-codigos { grid-template-columns: repeat(4, 1fr); font-size: 0.6rem; }
+    .cod-item { border: 1px solid #eee; }
+    table { width: 100% !important; border-collapse: collapse; }
+    th, td { border: 1px solid #c5d8ef !important; }
+    .codigos-painel-topo { display: block !important; border: 1px solid #c5daf0 !important; }
+}
