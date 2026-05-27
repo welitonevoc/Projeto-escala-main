@@ -164,6 +164,7 @@ export function CalendarioTab({ eventos, onUpdate }: Props) {
             );
           })}
         </div>
+
       </div>
 
       {/* Painel de eventos do dia selecionado */}
