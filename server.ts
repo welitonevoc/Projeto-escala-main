@@ -103,7 +103,7 @@ app.get("/api/sync", async (req, res) => {
       spreadsheetId: SPREADSHEET_ID,
       ranges,
     });
-    const data = response.data.valueRanges?.map(vr => vr.values || []) || [];
+    const data = response.data.valueRanges?.map((vr: { values?: string[][] }) => vr.values || []) || [];
     res.json({
       obreiros: data[0],
       congregacoes: data[1],

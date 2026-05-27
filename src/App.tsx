@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { RefreshCw, Printer, Calendar } from "lucide-react";
 import { format, startOfWeek, addDays, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
 
 import { ToastProvider, useToast } from "./hooks/useToast";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
@@ -19,8 +18,7 @@ import { ConfigTab } from "./tabs/ConfigTab";
 import { HistoriaTab } from "./tabs/HistoriaTab";
 
 import type { Obreiro, Congregacao, EscalaOficialData, EscalaLocalItem, Evento, TipoCulto, RegraCulto, DuplicateData } from "./types";
-import { criarDepartamentoVazio, DIAS_SEMANA_OFICIAL, DIAS_SEMANA_LOCAL, DIAS_SEMANA_PP, DIAS_SEMANA_PORTARIA, DIAS_OFFSET } from "./constants";
-import { CONGREGACOES_PADRAO, OBREIROS_PADRAO, ESCALA_LOCAL_PADRAO, TIPOS_CULTO_PADRAO, REGRAS_CULTO_PADRAO } from "./constants";
+import { criarDepartamentoVazio, DIAS_SEMANA_OFICIAL, DIAS_SEMANA_LOCAL, DIAS_SEMANA_PP, DIAS_SEMANA_PORTARIA, DIAS_OFFSET, CONGREGACOES_PADRAO, OBREIROS_PADRAO, ESCALA_LOCAL_PADRAO, TIPOS_CULTO_PADRAO, REGRAS_CULTO_PADRAO } from "./constants";
 
 function getWeekOfMonth(date: Date) {
   return Math.ceil(date.getDate() / 7);
@@ -89,7 +87,7 @@ function AppContent() {
         }
       });
       if (Object.keys(oficial).length === 0) {
-        DIAS_SEMANA_OFICIAL.forEach(dia => { oficial[dia.id] = dia.filtros.map(cong => ({ congregacao: cong, codigo: "04", escalados: ["", "", ""] })); });
+        DIAS_SEMANA_OFICIAL.forEach(dia => { oficial[dia.id] = (dia.filtros ?? []).map(cong => ({ congregacao: cong, codigo: "04", escalados: ["", "", ""] })); });
       }
       setEscalaOficial(oficial);
 
@@ -155,7 +153,7 @@ function AppContent() {
     const todasEscalas = [...(escalaOficial[diaId] || []), ...escalasDaEscalaLocal];
     for (const item of todasEscalas) {
       if (item.escalados?.includes(valor)) {
-        const localConflito = item.local || item.congregacao;
+        const localConflito = 'local' in item ? item.local : item.congregacao;
         if (localConflito !== localAtual) {
           setDuplicateModal({ isOpen: true, worker: valor, congregacao: localConflito, diaLabel: diaId });
           return;

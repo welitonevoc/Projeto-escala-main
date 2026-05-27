@@ -12,6 +12,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || DEFAULT_PASSWORD;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<string | null>(null);
@@ -25,11 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback((password: string): boolean => {
-    const adminPassword = process.env.GITHUB_PAGES === 'true'
-      ? DEFAULT_PASSWORD
-      : (import.meta as any).env?.VITE_ADMIN_PASSWORD || DEFAULT_PASSWORD;
-
-    if (password === adminPassword) {
+    if (password === ADMIN_PASSWORD) {
       localStorage.setItem(AUTH_KEY, 'admin');
       setIsAuthenticated(true);
       setUser('admin');
